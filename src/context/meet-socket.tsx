@@ -55,7 +55,9 @@ export default function MeetSocketProvider({
   };
 
   useEffect(() => {
-    const newSocket = io("ws://localhost:8080");
+    const newSocket = io("wss://enhanced-dory-smiling.ngrok-free.app", {
+      transports: ["websocket"],
+    });
     setSocket(newSocket);
 
     newSocket.on("joined-room-successfully", (room: Room) => {

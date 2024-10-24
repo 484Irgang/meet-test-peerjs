@@ -1,12 +1,19 @@
 "use client";
 import { v4 } from "uuid";
 
-import { CreateRoomButton } from "@/presentation/components/CreateRoomButton";
+import { useMeetSocket } from "@/context/meet-socket";
 import { useUserStore } from "@/store/user";
-import { useEffect } from "react";
+import { Room } from "@/types/room";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Index() {
+  const [roomId, setRoomId] = useState<string>();
   const setUserId = useUserStore((state) => state.setUserId);
+
+  const { createRoom } = useMeetSocket();
+  const router = useRouter();
+  const userId = useUserStore((state) => state.userId);
 
   const verifyUserId = () => {
     const userId = localStorage?.getItem("user_id");
@@ -19,6 +26,26 @@ export default function Index() {
     setUserId(userId);
   };
 
+  const handleEnterRoom = () => router.push(`/room/${roomId}`);
+
+  const handleCreateRoom = () => {
+    const newId = v4();
+
+    const newRoom: Room = {
+      id: newId,
+      name: "Sala de reunião",
+      admin: {
+        id: userId || v4(),
+        name: "Guilherme",
+      },
+      insertedAt: new Date().toISOString(),
+    };
+
+    createRoom(newRoom);
+    return router.push(`/room/${newId}`);
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => verifyUserId(), []);
 
   return (
@@ -37,12 +64,22 @@ export default function Index() {
           </p>
           <input
             type="text"
+            onChange={(e) => setRoomId(e.target.value)}
             className="w-full rounded-sm border border-neutral-900 bg-dark-100 h-8 outline-none pl-2"
           />
-          <button className="w-full h-[2.75rem] rounded-sm bg-brand-600 mt-4">
+          <button
+            disabled={!roomId}
+            className="w-full h-[2.75rem] rounded-sm bg-brand-600 mt-4"
+            onClick={handleEnterRoom}
+          >
             Entrar
           </button>
-          <CreateRoomButton />
+          <button
+            className="w-full h-[2.75rem] rounded-sm border border-neutral-400 mt-2"
+            onClick={handleCreateRoom}
+          >
+            Criar uma sala
+          </button>
         </div>
       </div>
     </div>
