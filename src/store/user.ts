@@ -6,7 +6,7 @@ type UserStore = {
 };
 
 export const useUserStore = create<UserStore>(() => {
-  const userId = localStorage.getItem("user_id");
+  const userId = localStorage?.getItem("user_id");
   if (!userId) {
     const newUserId = v4();
     localStorage.setItem("user_id", newUserId);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -20,11 +21,13 @@ export default function MeetSocketProvider({
 }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const userId = useUserStore((state) => state.userId);
+  const setRoom = useRoomStore((state) => state.setRoom);
 
   const createRoom = (newRoom: Room) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
       socket.emit("create-room", newRoom);
+      setRoom(newRoom);
     } catch (error) {
       console.error(error);
     }
@@ -43,9 +46,14 @@ export default function MeetSocketProvider({
     const newSocket = io("ws://localhost:8080");
     setSocket(newSocket);
 
+    newSocket.on("joined-room", (room: Room) => {
+      setRoom(room);
+    });
+
     return () => {
       newSocket.close();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
