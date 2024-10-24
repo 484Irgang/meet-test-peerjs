@@ -1,9 +1,9 @@
-import { useMediaStore } from "@/store/user-media";
+import { useLocalStreamStore } from "@/store/local-stream";
 import { useEffect, useRef } from "react";
 
 export const useUserMedia = () => {
   const userVideoRef = useRef<HTMLVideoElement | null>(null);
-  const setStream = useMediaStore((state) => state.setStream);
+  const setStream = useLocalStreamStore((state) => state.setStream);
 
   const getUserMedia = async () => {
     const userStream = await navigator?.mediaDevices?.getUserMedia({
@@ -18,7 +18,6 @@ export const useUserMedia = () => {
 
   useEffect(() => {
     getUserMedia();
-    return () => {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

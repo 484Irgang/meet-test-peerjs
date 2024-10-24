@@ -1,20 +1,11 @@
-import { v4 } from "uuid";
 import { create } from "zustand";
 
 type UserStore = {
-  userId: string;
+  userId: string | null;
+  setUserId: (userId: string) => void;
 };
 
-export const useUserStore = create<UserStore>(() => {
-  const userId = localStorage?.getItem("user_id");
-  if (!userId) {
-    const newUserId = v4();
-    localStorage.setItem("user_id", newUserId);
-    return {
-      userId: newUserId,
-    };
-  }
-  return {
-    userId,
-  };
-});
+export const useUserStore = create<UserStore>((set) => ({
+  userId: null,
+  setUserId: (userId) => set({ userId }),
+}));

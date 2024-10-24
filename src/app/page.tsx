@@ -1,6 +1,26 @@
-import { CreateRoomButton } from "@/presentation/components/CreateRoomButton";
+"use client";
+import { v4 } from "uuid";
 
-export default function Home() {
+import { CreateRoomButton } from "@/presentation/components/CreateRoomButton";
+import { useUserStore } from "@/store/user";
+import { useEffect } from "react";
+
+export default function Index() {
+  const setUserId = useUserStore((state) => state.setUserId);
+
+  const verifyUserId = () => {
+    const userId = localStorage?.getItem("user_id");
+    if (!userId) {
+      const newUserId = v4();
+      localStorage.setItem("user_id", newUserId);
+      return setUserId(newUserId);
+    }
+
+    setUserId(userId);
+  };
+
+  useEffect(() => verifyUserId(), []);
+
   return (
     <div className="w-full h-full bg-dark-300 flex flex-1 items-center flex-col relative">
       <img

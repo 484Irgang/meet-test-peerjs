@@ -1,5 +1,6 @@
 "use client";
 
+import { usePeerClientStore } from "@/store/peer-client";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
@@ -9,6 +10,7 @@ import { io, Socket } from "socket.io-client";
 type MeetSocketContextProps = {
   createRoom: (newRoom: Room) => void;
   requestToJoinRoom: (roomId: string) => void;
+  sharePeerIdToRoom: (roomId: string, peerId: string) => void;
   socketActive: boolean;
 };
 
@@ -22,6 +24,7 @@ export default function MeetSocketProvider({
   const [socket, setSocket] = useState<Socket | null>(null);
   const userId = useUserStore((state) => state.userId);
   const setRoom = useRoomStore((state) => state.setRoom);
+  const setRemotePeerId = usePeerClientStore((state) => state.setRemotePeerId);
 
   const createRoom = (newRoom: Room) => {
     try {
@@ -42,12 +45,25 @@ export default function MeetSocketProvider({
     }
   };
 
+  const sharePeerIdToRoom = (roomId: string, peerId: string) => {
+    try {
+      if (!socket?.active) throw new Error("Socket is not active");
+      socket.emit("share-peer-id", roomId, userId, peerId);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     const newSocket = io("ws://localhost:8080");
     setSocket(newSocket);
 
-    newSocket.on("joined-room", (room: Room) => {
+    newSocket.on("joined-room-successfully", (room: Room) => {
       setRoom(room);
+    });
+
+    newSocket.on("peer-id-shared", (peerId: string) => {
+      setRemotePeerId(peerId);
     });
 
     return () => {
@@ -58,7 +74,12 @@ export default function MeetSocketProvider({
 
   return (
     <MeetSocketContext.Provider
-      value={{ socketActive: !!socket?.active, createRoom, requestToJoinRoom }}
+      value={{
+        socketActive: !!socket?.active,
+        createRoom,
+        requestToJoinRoom,
+        sharePeerIdToRoom,
+      }}
     >
       {children}
     </MeetSocketContext.Provider>
