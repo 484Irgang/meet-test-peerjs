@@ -1,7 +1,14 @@
+import { CreateRoomButton } from "@/presentation/components/CreateRoomButton";
+
 export default function Home() {
   return (
     <div className="w-full h-full bg-dark-300 flex flex-1 items-center flex-col relative">
-      <div className="mt-[18vh] p-4 rounded-lg bg-dark-200 flex items-center justify-center flex-col gap-y-4 border border-neutral-1000">
+      <img
+        alt="background"
+        className="absolute bottom-0 w-full max-w-[60vw] object-contain opacity-30"
+        src="background_gray.svg"
+      />
+      <div className="mt-[20vh] p-4 rounded-lg bg-dark-200 flex items-center justify-center flex-col gap-y-4 border border-neutral-1000 z-10">
         <h1 className="font-bold text-brand-600">DWV MEET</h1>
         <h1 className="text-[1.75rem] font-bold">Bem vindo</h1>
         <div className="w-full min-w-60 flex flex-col gap-y-2">
@@ -15,16 +22,9 @@ export default function Home() {
           <button className="w-full h-[2.75rem] rounded-sm bg-brand-600 mt-4">
             Entrar
           </button>
-          <button className="w-full h-[2.75rem] rounded-sm border border-neutral-400 mt-2">
-            Criar uma sala
-          </button>
+          <CreateRoomButton />
         </div>
       </div>
-      <img
-        alt="background"
-        className="absolute bottom-0 w-full max-w-[40rem] object-contain opacity-50"
-        src="background_gray.svg"
-      />
     </div>
   );
 }
