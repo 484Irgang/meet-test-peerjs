@@ -5,26 +5,14 @@ import { useMeetSocket } from "@/context/meet-socket";
 import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Index() {
   const [roomId, setRoomId] = useState<string>();
-  const setUserId = useUserStore((state) => state.setUserId);
 
   const { createRoom } = useMeetSocket();
   const router = useRouter();
   const userId = useUserStore((state) => state.userId);
-
-  const verifyUserId = () => {
-    const userId = localStorage?.getItem("user_id");
-    if (!userId) {
-      const newUserId = v4();
-      localStorage.setItem("user_id", newUserId);
-      return setUserId(newUserId);
-    }
-
-    setUserId(userId);
-  };
 
   const handleEnterRoom = () => router.push(`/room/${roomId}`);
 
@@ -44,9 +32,6 @@ export default function Index() {
     createRoom(newRoom);
     return router.push(`/room/${newId}`);
   };
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => verifyUserId(), []);
 
   return (
     <div className="w-full h-full bg-dark-300 flex flex-1 items-center flex-col relative">
