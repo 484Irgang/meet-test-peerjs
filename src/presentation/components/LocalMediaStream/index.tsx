@@ -12,6 +12,7 @@ export const LocalMediaStream = () => {
 
 export const RemoteMediaStream = () => {
   const remoteStream = useRemoteStreamStore((state) => state.remoteStream);
+  if (!remoteStream) return null;
   return (
     <div className="h-[12rem] w-[24rem] bg-dark-100 rounded-md">
       <video
