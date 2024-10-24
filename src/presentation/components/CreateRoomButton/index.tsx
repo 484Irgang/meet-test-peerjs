@@ -1,10 +1,14 @@
 "use client";
-import MeetSocketProvider, { useMeetSocket } from "@/context/meet-socket";
+import { useMeetSocket } from "@/context/meet-socket";
+import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
+import { useRouter } from "next/navigation";
 import { v4 } from "uuid";
 
-const Button = () => {
+export const CreateRoomButton = () => {
   const { createRoom } = useMeetSocket();
+  const router = useRouter();
+  const userId = useUserStore((state) => state.userId);
 
   const handleCreateRoom = () => {
     const newId = v4();
@@ -13,12 +17,14 @@ const Button = () => {
       id: newId,
       name: "Sala de reunião",
       admin: {
+        id: userId,
         name: "Guilherme",
       },
       insertedAt: new Date().toISOString(),
     };
 
-    return createRoom(newRoom);
+    createRoom(newRoom);
+    return router.push(`/room/${newId}`);
   };
 
   return (
@@ -28,13 +34,5 @@ const Button = () => {
     >
       Criar uma sala
     </button>
-  );
-};
-
-export const CreateRoomButton = () => {
-  return (
-    <MeetSocketProvider>
-      <Button />
-    </MeetSocketProvider>
   );
 };

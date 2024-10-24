@@ -1,9 +1,14 @@
+"use client";
+
+import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
 import { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 type MeetSocketContextProps = {
   createRoom: (newRoom: Room) => void;
+  requestToJoinRoom: (roomId: string) => void;
+  socketActive: boolean;
 };
 
 const MeetSocketContext = createContext({} as MeetSocketContextProps);
@@ -14,11 +19,21 @@ export default function MeetSocketProvider({
   children: React.ReactNode;
 }) {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const userId = useUserStore((state) => state.userId);
 
   const createRoom = (newRoom: Room) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
       socket.emit("create-room", newRoom);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const requestToJoinRoom = (roomId: string) => {
+    try {
+      if (!socket?.active) throw new Error("Socket is not active");
+      socket.emit("request-join-room", roomId, userId);
     } catch (error) {
       console.error(error);
     }
@@ -34,7 +49,9 @@ export default function MeetSocketProvider({
   }, []);
 
   return (
-    <MeetSocketContext.Provider value={{ createRoom }}>
+    <MeetSocketContext.Provider
+      value={{ socketActive: !!socket?.active, createRoom, requestToJoinRoom }}
+    >
       {children}
     </MeetSocketContext.Provider>
   );
