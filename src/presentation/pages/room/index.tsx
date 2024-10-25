@@ -6,7 +6,9 @@ import {
   RemoteMediaStream,
 } from "@/presentation/components/LocalMediaStream";
 import { usePeerClientStore } from "@/store/peer-client";
+import { useRemoteStreamStore } from "@/store/remote-stream";
 import { useRoomStore } from "@/store/room";
+import { toPairs } from "ramda";
 import { useEffect } from "react";
 
 export default function RoomPage({ roomId }: { roomId: string }) {
@@ -16,17 +18,20 @@ export default function RoomPage({ roomId }: { roomId: string }) {
     useMeetSocket();
 
   const myPeerId = usePeerClientStore((state) => state.myPeerId);
+  const remoteStreams = useRemoteStreamStore((state) => state.remoteStreams);
 
   useEffect(() => {
     if (myPeerId && socketActive && room?.id)
       sharePeerIdToRoom(room.id, myPeerId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myPeerId, socketActive]);
+  }, [myPeerId, socketActive, room?.id]);
 
   useEffect(() => {
     if (socketActive) requestToJoinRoom(roomId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socketActive]);
+
+  console.log(remoteStreams);
 
   if (!room?.id)
     return (
@@ -42,7 +47,10 @@ export default function RoomPage({ roomId }: { roomId: string }) {
         <h1 className="text-lg font-medium">{room.name}</h1>
         <div className="flex flex-1 gap-4 flex-wrap content-start">
           <LocalMediaStream />
-          <RemoteMediaStream />
+          {remoteStreams &&
+            toPairs(remoteStreams).map(([peerId, stream]) => (
+              <RemoteMediaStream key={peerId} stream={stream} />
+            ))}
         </div>
       </div>
     </div>

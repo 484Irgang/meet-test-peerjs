@@ -1,11 +1,18 @@
 import { create } from "zustand";
 
 type RemoteStreamStore = {
-  remoteStream: MediaStream | null;
-  setRemoteStream: (remoteStream: MediaStream) => void;
+  remoteStreams: { [peerId: string]: MediaStream } | null;
+  setRemoteStream: (peerId: string, remoteStream: MediaStream) => void;
 };
 
 export const useRemoteStreamStore = create<RemoteStreamStore>((set) => ({
-  remoteStream: null,
-  setRemoteStream: (remoteStream) => set({ remoteStream }),
+  remoteStreams: null,
+  setRemoteStream: (peerId, remoteStream) =>
+    set((state) => ({
+      ...state,
+      remoteStreams: {
+        ...state.remoteStreams,
+        [peerId]: remoteStream,
+      },
+    })),
 }));

@@ -24,7 +24,7 @@ export default function MeetSocketProvider({
   const [socket, setSocket] = useState<Socket | null>(null);
   const userId = useUserStore((state) => state.userId);
   const setRoom = useRoomStore((state) => state.setRoom);
-  const setRemotePeerId = usePeerClientStore((state) => state.setRemotePeerId);
+  const setRemotePeerId = usePeerClientStore((state) => state.appendRemotePeer);
 
   const createRoom = (newRoom: Room) => {
     try {

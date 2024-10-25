@@ -21,12 +21,12 @@ export default function PeerClientProvider({
   const [peerClient, setPeerClient] = useState<Peer | null>(null);
 
   const setMyId = usePeerClientStore((state) => state.setMyPeerId);
-  const remotePeerId = usePeerClientStore((state) => state.remotePeerId);
-
-  const myStream = useLocalStreamStore((state) => state.stream);
+  const remotePeers = usePeerClientStore((state) => state.remotePeers);
   const setRemoteStream = useRemoteStreamStore(
     (state) => state.setRemoteStream
   );
+
+  const myStream = useLocalStreamStore((state) => state.stream);
 
   const onConnect = () => {
     const client = new Peer();
@@ -42,18 +42,18 @@ export default function PeerClientProvider({
           }));
 
         call.answer(stream);
-        call.on("stream", setRemoteStream);
+        call.on("stream", (stream) => setRemoteStream(call.peer, stream));
       } catch (error) {
         console.error(error);
       }
     });
   };
 
-  const startPeerCall = (myPeer: Peer, remotePeerId: string) => {
+  const startPeerCall = (myPeer: Peer) => (remotePeerId: string) => {
     try {
       if (!myStream) throw new Error("My stream is not available");
       const call = myPeer.call(remotePeerId, myStream);
-      call.on("stream", setRemoteStream);
+      call.on("stream", (stream) => setRemoteStream(remotePeerId, stream));
     } catch (error) {
       console.error(error);
     }
@@ -65,11 +65,11 @@ export default function PeerClientProvider({
   }, []);
 
   useEffect(() => {
-    if (remotePeerId && peerClient?.id) {
-      startPeerCall(peerClient, remotePeerId);
+    if (remotePeers && peerClient?.id) {
+      remotePeers.forEach(startPeerCall(peerClient));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remotePeerId, peerClient?.id]);
+  }, [remotePeers, peerClient?.id]);
 
   return (
     <PeerClientContext.Provider value={{ onConnect, peerClient }}>
