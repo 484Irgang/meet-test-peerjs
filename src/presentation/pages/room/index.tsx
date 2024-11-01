@@ -31,8 +31,8 @@ export default function RoomPage({ roomId }: { roomId: string }) {
     );
 
   return (
-    <div className="w-full h-full bg-dark-300 flex px-10 py-4 overflow-hidden">
-      <div className="h-full w-3/5 flex flex-col gap-y-4">
+    <div className="w-full h-full bg-dark-300 flex p-4 overflow-auto">
+      <div className="h-full w-full flex flex-col gap-4 flex-wrap">
         <h1 className="text-xl font-bold">{room.name}</h1>
         <div className="flex flex-1 gap-4 flex-wrap content-start">
           <LocalMediaStream />

@@ -4,7 +4,7 @@ import { Fragment } from "react";
 export const LocalMediaStream = () => {
   const localStream = useLocalStreamStore((state) => state.stream);
   return (
-    <div className="w-full max-w-[540px] h-[360px] max-h-[54%] bg-dark-200 border border-brand-900 p-2 rounded-md flex flex-col gap-y-2 items-center justify-center">
+    <div className="h-[12rem] w-[24rem] bg-dark-200 border border-brand-900 p-2 rounded-md flex flex-col gap-y-2 items-center justify-center">
       {localStream?.active ? (
         <video
           className="w-full h-full"

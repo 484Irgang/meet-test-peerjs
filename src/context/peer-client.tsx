@@ -30,9 +30,7 @@ export default function PeerClientProvider({
 
   const { socketActive, shareSessionIdToRoom } = useMeetSocket();
 
-  const setRemoteStream = useRemoteStreamStore(
-    (state) => state.setRemoteStream
-  );
+  const { setRemoteStream, remoteStreams } = useRemoteStreamStore();
 
   const { localStream } = useUserMedia(sessionId);
 
@@ -124,6 +122,11 @@ export default function PeerClientProvider({
   const getRemoteSession =
     (mySessionId: string) => async (remoteSessionId: string) => {
       try {
+        const remoteStream = remoteStreams?.[remoteSessionId];
+
+        if (remoteStream)
+          return console.log("Remote stream already exists", remoteStream);
+
         if (!localStream?.active) throw new Error("My stream is not available");
         const { data, error } = await CallsService.session.getCallSession(
           remoteSessionId
