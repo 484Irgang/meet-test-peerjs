@@ -5,7 +5,7 @@ export type SessionDescription = {
 
 export type TrackObject = {
   location: "local" | "remote";
-  mid?: string; // Só necessário para tracks locais
+  mid?: string | null; // Só necessário para tracks locais
   sessionId?: string; // Só necessário para tracks remotas
   trackName: string;
 };

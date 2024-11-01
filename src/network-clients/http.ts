@@ -1,5 +1,5 @@
 type ClientResults<T> = {
-  data: T;
+  data: T | null;
   error?: Error;
 };
 
@@ -10,13 +10,17 @@ const createApiClient = (
   endpoint: string,
   options?: RequestInit
 ) => Promise<ClientResults<T>>) => {
-  return async (endpoint: string, options = { ...config }) => {
+  const initialConfig = config;
+
+  return async (endpoint: string, options = {}) => {
     const headers = {
       "Content-Type": "application/json",
       ...options.headers,
+      ...initialConfig?.headers,
     };
 
     const config = {
+      ...initialConfig,
       ...options,
       headers,
     };
@@ -28,10 +32,12 @@ const createApiClient = (
         throw new Error(`Erro: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      return { data };
     } catch (error) {
       console.error("Erro na requisição:", error);
-      throw error;
+      return { data: null, error: error as unknown as Error };
     }
   };
 };

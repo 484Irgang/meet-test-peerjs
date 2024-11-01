@@ -1,6 +1,6 @@
 "use client";
 
-import { usePeerClientStore } from "@/store/peer-client";
+import { useCallStore } from "@/store/call-store";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
@@ -10,7 +10,7 @@ import { io, Socket } from "socket.io-client";
 type MeetSocketContextProps = {
   createRoom: (newRoom: Room) => void;
   requestToJoinRoom: (roomId: string) => void;
-  sharePeerIdToRoom: (roomId: string, peerId: string) => void;
+  shareSessionIdToRoom: (roomId: string, sessionId: string) => void;
   socketActive: boolean;
 };
 
@@ -24,7 +24,9 @@ export default function MeetSocketProvider({
   const [socket, setSocket] = useState<Socket | null>(null);
   const userId = useUserStore((state) => state.userId);
   const setRoom = useRoomStore((state) => state.setRoom);
-  const setRemotePeerId = usePeerClientStore((state) => state.appendRemotePeer);
+  const appendRemoteSessionId = useCallStore(
+    (state) => state.appendRemoteSessionId
+  );
 
   const createRoom = (newRoom: Room) => {
     try {
@@ -45,10 +47,10 @@ export default function MeetSocketProvider({
     }
   };
 
-  const sharePeerIdToRoom = (roomId: string, peerId: string) => {
+  const shareSessionIdToRoom = (roomId: string, sessionId: string) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
-      socket.emit("share-peer-id", roomId, userId, peerId);
+      socket.emit("share-call-session-id", roomId, userId, sessionId);
     } catch (error) {
       console.error(error);
     }
@@ -64,8 +66,8 @@ export default function MeetSocketProvider({
       setRoom(room);
     });
 
-    newSocket.on("peer-id-shared", (peerId: string) => {
-      setRemotePeerId(peerId);
+    newSocket.on("session-id-shared", (sessionId: string) => {
+      appendRemoteSessionId(sessionId);
     });
 
     return () => {
@@ -80,7 +82,7 @@ export default function MeetSocketProvider({
         socketActive: !!socket?.active,
         createRoom,
         requestToJoinRoom,
-        sharePeerIdToRoom,
+        shareSessionIdToRoom,
       }}
     >
       {children}

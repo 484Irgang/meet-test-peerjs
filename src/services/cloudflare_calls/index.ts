@@ -31,14 +31,14 @@ const getCallSession = async (sessionId: string) =>
 const addLocalTracksToCallSession = async (
   sessionId: string,
   tracks: TrackObject[],
-  sdp: RTCSessionDescription
+  sdp: RTCSessionDescription | null
 ) =>
   callsClient<TracksResponse>(`/sessions/${sessionId}/tracks/new`, {
     method: "POST",
     body: JSON.stringify({
       tracks,
       sessionDescription: {
-        sdp: sdp.sdp,
+        sdp: sdp?.sdp,
         type: "offer",
       },
     } as TracksRequest),
@@ -61,7 +61,7 @@ const closeTracksFromCallSession = async (
   sessionDescription: RTCSessionDescription,
   force = false
 ) =>
-  callsClient<CloseTracksResponse>(`sessions/${sessionId}/tracks/close`, {
+  callsClient<CloseTracksResponse>(`/sessions/${sessionId}/tracks/close`, {
     method: "PUT",
     body: JSON.stringify({
       tracks,
@@ -77,7 +77,7 @@ const renegotiateCallSession = async (
   sessionId: string,
   sdp: RTCSessionDescription
 ) =>
-  callsClient<SessionDescription>(`sessions/${sessionId}/renegotiate`, {
+  callsClient<SessionDescription>(`/sessions/${sessionId}/renegotiate`, {
     method: "PUT",
     body: JSON.stringify({
       sessionDescription: {
