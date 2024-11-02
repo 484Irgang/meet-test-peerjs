@@ -33,7 +33,7 @@ export default function RoomPage({ roomId }: { roomId: string }) {
   return (
     <div className="w-full h-full bg-dark-300 flex p-4 overflow-auto">
       <div className="h-full w-full flex flex-col gap-4 flex-wrap">
-        <h1 className="text-xl font-bold">{room.name}</h1>
+        <h1 className="text-xl font-bold w-full">{room.name}</h1>
         <div className="flex flex-1 gap-4 flex-wrap content-start">
           <LocalMediaStream />
           {remoteStreams &&

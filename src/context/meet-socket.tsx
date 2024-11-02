@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallStore } from "@/store/call-store";
+import { TrackObject } from "@/services/cloudflare_calls/types";
+import { RemoteSession, useCallStore } from "@/store/call-store";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
@@ -10,7 +11,10 @@ import { io, Socket } from "socket.io-client";
 type MeetSocketContextProps = {
   createRoom: (newRoom: Room) => void;
   requestToJoinRoom: (roomId: string) => void;
-  shareSessionIdToRoom: (roomId: string, sessionId: string) => void;
+  shareSessionToRoom: (
+    roomId: string,
+    sessionId: { id: string; tracks: TrackObject[] }
+  ) => void;
   socketActive: boolean;
 };
 
@@ -25,7 +29,7 @@ export default function MeetSocketProvider({
   const userId = useUserStore((state) => state.userId);
   const setRoom = useRoomStore((state) => state.setRoom);
   const appendRemoteSessionId = useCallStore(
-    (state) => state.appendRemoteSessionId
+    (state) => state.appendRemoteSession
   );
 
   const createRoom = (newRoom: Room) => {
@@ -47,10 +51,13 @@ export default function MeetSocketProvider({
     }
   };
 
-  const shareSessionIdToRoom = (roomId: string, sessionId: string) => {
+  const shareSessionToRoom = (
+    roomId: string,
+    session: { id: string; tracks: TrackObject[] }
+  ) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
-      socket.emit("share-call-session-id", roomId, userId, sessionId);
+      socket.emit("share-call-session-id", roomId, userId, session);
     } catch (error) {
       console.error(error);
     }
@@ -66,8 +73,8 @@ export default function MeetSocketProvider({
       setRoom(room);
     });
 
-    newSocket.on("session-id-shared", (sessionId: string) => {
-      appendRemoteSessionId(sessionId);
+    newSocket.on("session-id-shared", (session: RemoteSession) => {
+      appendRemoteSessionId(session);
     });
 
     return () => {
@@ -82,7 +89,7 @@ export default function MeetSocketProvider({
         socketActive: !!socket?.active,
         createRoom,
         requestToJoinRoom,
-        shareSessionIdToRoom,
+        shareSessionToRoom,
       }}
     >
       {children}

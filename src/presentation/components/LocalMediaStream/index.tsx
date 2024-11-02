@@ -15,8 +15,10 @@ export const LocalMediaStream = () => {
         />
       ) : (
         <Fragment>
-          <div className="w-10 h-10 rounded-all border-2 border-b-0 border-t-0 border-brand-500 animate-spin" />
-          <h1>Aguarde um momento, preparando seu stream</h1>
+          <div className="w-6 h-6 rounded-all border-2 border-b-0 border-t-0 border-brand-500 animate-spin" />
+          <h1 className="text-sm ">
+            Aguarde um momento, preparando seu stream
+          </h1>
         </Fragment>
       )}
     </div>

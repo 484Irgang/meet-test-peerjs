@@ -1,13 +1,19 @@
+import { TrackObject } from "@/services/cloudflare_calls/types";
 import { parseCookies } from "nookies";
 import { union } from "ramda";
 import { create } from "zustand";
 
+export type RemoteSession = {
+  id: string;
+  tracks: TrackObject[];
+};
+
 type CallStore = {
   sessionId: string | null;
   setSessionId: (sessionId: string) => void;
-  remoteSessionIds: string[];
-  appendRemoteSessionId: (sessionId: string) => void;
-  removeRemoteSessionId: (sessionId: string) => void;
+  remoteSessions: RemoteSession[];
+  appendRemoteSession: (session: RemoteSession) => void;
+  removeRemoteSession: (sessionId: string) => void;
 };
 
 export const useCallStore = create<CallStore>((set) => {
@@ -15,15 +21,15 @@ export const useCallStore = create<CallStore>((set) => {
   return {
     sessionId: sessionId || null,
     setSessionId: (sessionId) => set({ sessionId }),
-    remoteSessionIds: [],
-    appendRemoteSessionId: (sessionId) =>
+    remoteSessions: [],
+    appendRemoteSession: (session) =>
       set((state) => ({
-        remoteSessionIds: union(state.remoteSessionIds, [sessionId]),
+        remoteSessions: union(state.remoteSessions, [session]),
       })),
-    removeRemoteSessionId: (sessionId) =>
+    removeRemoteSession: (sessionId) =>
       set((state) => ({
-        remoteSessionIds: state.remoteSessionIds.filter(
-          (id) => id !== sessionId
+        remoteSessions: state.remoteSessions.filter(
+          (session) => session.id !== sessionId
         ),
       })),
   };
