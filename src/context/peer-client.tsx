@@ -6,6 +6,7 @@ import { TrackObject } from "@/services/cloudflare_calls/types";
 import { RemoteSession, useCallStore } from "@/store/call-store";
 import { useRemoteStreamStore } from "@/store/remote-stream";
 import { useRoomStore } from "@/store/room";
+import { toPairs } from "ramda";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useMeetSocket } from "./meet-socket";
 
@@ -125,84 +126,107 @@ export default function PeerClientProvider({
     }
   };
 
-  const getRemoteSessionTracks =
-    (mySessionId: string) => async (remoteSession: RemoteSession) => {
-      try {
-        console.log("Get remote session tracks", remoteSession);
-        const remoteStream = remoteStreams?.[remoteSession.id];
+  const getRemoteSessionTracks = async (
+    mySessionId: string,
+    remoteSessions: RemoteSession[]
+  ) => {
+    try {
+      console.log("Get remote session tracks", remoteSessions);
 
-        if (remoteStream)
-          return console.log("Remote stream already exists", remoteStream);
+      if (!localStream?.active) throw new Error("My stream is not available");
 
-        if (!localStream?.active) throw new Error("My stream is not available");
-
-        const tracksToPull: TrackObject[] = remoteSession.tracks?.map(
-          (track) => ({
+      const tracksToPull = remoteSessions.reduce<TrackObject[]>(
+        (acc, session) => {
+          const remoteStream = remoteStreams?.[session.id];
+          if (remoteStream?.active) return acc;
+          const tracks: TrackObject[] = session.tracks.map(({ trackName }) => ({
             location: "remote",
-            trackName: track.trackName,
-            sessionId: remoteSession.id,
-          })
+            trackName: trackName,
+            sessionId: session.id,
+          }));
+          acc.push(...tracks);
+          return acc;
+        },
+        []
+      );
+
+      const { data: remoteTracksData, error: remoteTracksError } =
+        await CallsService.tracks.getRemoteTracksFromCallSession(
+          mySessionId,
+          tracksToPull
         );
 
-        const { data: remoteTracksData, error: remoteTracksError } =
-          await CallsService.tracks.getRemoteTracksFromCallSession(
-            mySessionId,
-            tracksToPull
-          );
+      if (!remoteTracksData || !peerClient)
+        throw new Error(
+          remoteTracksError?.message ||
+            "Error getting remote tracks or local peer not connected"
+        );
 
-        if (!remoteTracksData || !peerClient)
-          throw new Error(
-            remoteTracksError?.message ||
-              "Error getting remote tracks or local peer not connected"
-          );
-
-        const resolvingTracks = Promise.all(
-          remoteTracksData.tracks.map(
-            ({ mid }) =>
-              new Promise<MediaStreamTrack>((res, rej) => {
+      const resolvingTracks = Promise.all(
+        remoteTracksData.tracks.map(
+          ({ mid, sessionId }) =>
+            new Promise<{ sessionId: string; track: MediaStreamTrack }>(
+              (res, rej) => {
                 setTimeout(rej, 5000);
                 const handleTrack = ({ transceiver, track }: RTCTrackEvent) => {
-                  console.log("Handle track on peer", { transceiver, track });
-                  if (transceiver.mid !== mid) return;
+                  console.log("Handle track on peer", {
+                    transceiver,
+                    track,
+                    sessionId,
+                  });
+                  if (transceiver.mid !== mid || !sessionId) return;
                   peerClient.removeEventListener("track", handleTrack);
-                  res(track);
+                  res({ sessionId, track });
                 };
                 peerClient.addEventListener("track", handleTrack);
-              })
-          )
+              }
+            )
+        )
+      );
+
+      if (remoteTracksData.requiresImmediateRenegotiation) {
+        console.log("Creating answer for remote tracks");
+        await peerClient.setRemoteDescription(
+          remoteTracksData.sessionDescription
         );
+        const remoteAnswer = await peerClient.createAnswer();
+        await peerClient.setLocalDescription(remoteAnswer);
 
-        if (remoteTracksData.requiresImmediateRenegotiation) {
-          console.log("Creating answer for remote tracks");
-          await peerClient.setRemoteDescription(
-            remoteTracksData.sessionDescription
-          );
-          const remoteAnswer = await peerClient.createAnswer();
-          await peerClient.setLocalDescription(remoteAnswer);
-
-          const { error } = await CallsService.session.renegotiateCallSession(
-            mySessionId,
-            new RTCSessionDescription(remoteAnswer)
-          );
-          if (error) {
-            throw new Error(error?.message || "Error renegotiating session");
-          }
+        const { error } = await CallsService.session.renegotiateCallSession(
+          mySessionId,
+          new RTCSessionDescription(remoteAnswer)
+        );
+        if (error) {
+          throw new Error(error?.message || "Error renegotiating session");
         }
+      }
 
-        const pulledTracks = await resolvingTracks;
+      const pulledTracks = await resolvingTracks;
+
+      const normalizedSessionTracks = pulledTracks.reduce<{
+        [sessionId: string]: MediaStreamTrack[];
+      }>((acc, track) => {
+        if (!acc[track.sessionId]) acc[track.sessionId] = [];
+        acc[track.sessionId].push(track.track);
+        return acc;
+      }, {});
+
+      toPairs(normalizedSessionTracks).forEach(([sessionId, tracks]) => {
         const remoteVideoStream = new MediaStream();
-
-        pulledTracks.forEach((track) => {
+        tracks.forEach((track) => {
           remoteVideoStream.addTrack(track);
         });
+        setRemoteStream(sessionId, remoteVideoStream);
+      });
 
-        setRemoteStream(remoteSession.id, remoteVideoStream);
-
-        console.log("Sucessfully pulled remote tracks", remoteVideoStream);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+      return console.log(
+        "Successfully pulled remote tracks",
+        normalizedSessionTracks
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     if (!sessionCreated.current) {
@@ -229,8 +253,7 @@ export default function PeerClientProvider({
   useEffect(() => {
     if (remoteSessions?.length && sessionId && connected && room?.id) {
       console.log("Updated remote sessions", remoteSessions);
-      const promises = remoteSessions.map(getRemoteSessionTracks(sessionId));
-      Promise.all(promises);
+      getRemoteSessionTracks(sessionId, remoteSessions);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteSessions, sessionId, connected, room?.id]);
