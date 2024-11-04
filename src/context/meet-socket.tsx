@@ -28,7 +28,7 @@ export default function MeetSocketProvider({
   const [socket, setSocket] = useState<Socket | null>(null);
   const userId = useUserStore((state) => state.userId);
   const setRoom = useRoomStore((state) => state.setRoom);
-  const appendRemoteSessionId = useCallStore(
+  const appendRemoteSession = useCallStore(
     (state) => state.appendRemoteSession
   );
 
@@ -45,7 +45,7 @@ export default function MeetSocketProvider({
   const requestToJoinRoom = (roomId: string) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
-      socket.emit("request-join-room", roomId, userId);
+      socket.emit("request-join-room", { roomId, userId });
     } catch (error) {
       console.error(error);
     }
@@ -57,7 +57,7 @@ export default function MeetSocketProvider({
   ) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
-      socket.emit("share-call-session-id", roomId, userId, session);
+      socket.emit("share-call-session", { roomId, userId, session });
     } catch (error) {
       console.error(error);
     }
@@ -73,8 +73,14 @@ export default function MeetSocketProvider({
       setRoom(room);
     });
 
-    newSocket.on("session-id-shared", (session: RemoteSession) => {
-      appendRemoteSessionId(session);
+    newSocket.on("receive-call-session", (session: RemoteSession) => {
+      appendRemoteSession(session);
+    });
+
+    newSocket.on("receive-all-room-sessions", (sessions: RemoteSession[]) => {
+      sessions.forEach((session) => {
+        appendRemoteSession(session);
+      });
     });
 
     return () => {

@@ -25,6 +25,7 @@ export default function PeerClientProvider({
   const [connected, setConnected] = useState(false);
 
   const localTracksSended = useRef(false);
+  const sessionCreated = useRef(false);
 
   const { sessionId, setSessionId, remoteSessions } = useCallStore();
   const room = useRoomStore((state) => state.room);
@@ -37,6 +38,7 @@ export default function PeerClientProvider({
 
   const onStartPeer = async () => {
     try {
+      console.log("Start peer and session connection");
       const { data, error } = await CallsService.session.createCallSession();
       if (!data?.sessionId)
         throw new Error(error?.message || "Error creating session");
@@ -62,6 +64,7 @@ export default function PeerClientProvider({
     peer: RTCPeerConnection,
     stream: MediaStream
   ) => {
+    console.log("Send tracks to session", sessionId);
     try {
       const newTransceivers = stream
         .getTracks()
@@ -122,9 +125,10 @@ export default function PeerClientProvider({
     }
   };
 
-  const getRemoteSession =
+  const getRemoteSessionTracks =
     (mySessionId: string) => async (remoteSession: RemoteSession) => {
       try {
+        console.log("Get remote session tracks", remoteSession);
         const remoteStream = remoteStreams?.[remoteSession.id];
 
         if (remoteStream)
@@ -158,6 +162,7 @@ export default function PeerClientProvider({
               new Promise<MediaStreamTrack>((res, rej) => {
                 setTimeout(rej, 5000);
                 const handleTrack = ({ transceiver, track }: RTCTrackEvent) => {
+                  console.log("Handle track on peer", { transceiver, track });
                   if (transceiver.mid !== mid) return;
                   peerClient.removeEventListener("track", handleTrack);
                   res(track);
@@ -168,6 +173,7 @@ export default function PeerClientProvider({
         );
 
         if (remoteTracksData.requiresImmediateRenegotiation) {
+          console.log("Creating answer for remote tracks");
           await peerClient.setRemoteDescription(
             remoteTracksData.sessionDescription
           );
@@ -192,23 +198,17 @@ export default function PeerClientProvider({
 
         setRemoteStream(remoteSession.id, remoteVideoStream);
 
-        const myTracks: TrackObject[] = myTransceivers?.map(
-          ({ mid, sender }) => ({
-            location: "local",
-            mid,
-            trackName: sender?.track?.id ?? "",
-          })
-        );
-
-        if (room?.id && myTracks?.length)
-          shareSessionToRoom(room.id, { id: mySessionId, tracks: myTracks });
+        console.log("Sucessfully pulled remote tracks", remoteVideoStream);
       } catch (error) {
         console.error(error);
       }
     };
 
   useEffect(() => {
-    onStartPeer();
+    if (!sessionCreated.current) {
+      onStartPeer();
+      sessionCreated.current = true;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -217,17 +217,20 @@ export default function PeerClientProvider({
       localStream?.active &&
       peerClient &&
       sessionId &&
-      !localTracksSended.current
+      !localTracksSended.current &&
+      room?.id
     ) {
       handleSendTracksToSession(sessionId, peerClient, localStream);
       localTracksSended.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localStream?.active, peerClient, sessionId]);
+  }, [localStream?.active, peerClient, sessionId, room?.id]);
 
   useEffect(() => {
     if (remoteSessions?.length && sessionId && connected && room?.id) {
-      remoteSessions.forEach(getRemoteSession(sessionId));
+      console.log("Updated remote sessions", remoteSessions);
+      const promises = remoteSessions.map(getRemoteSessionTracks(sessionId));
+      Promise.all(promises);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteSessions, sessionId, connected, room?.id]);
@@ -240,6 +243,7 @@ export default function PeerClientProvider({
       connected &&
       myTransceivers?.length
     ) {
+      console.log("Share session to room", sessionId);
       const tracks: TrackObject[] = myTransceivers.map(({ mid, sender }) => ({
         location: "local",
         mid,
@@ -248,7 +252,7 @@ export default function PeerClientProvider({
       shareSessionToRoom(room.id, { id: sessionId, tracks });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, socketActive, room?.id, connected, myTransceivers]);
+  }, [sessionId, socketActive, room?.id, connected, myTransceivers?.length]);
 
   return (
     <PeerClientContext.Provider value={{ peerClient }}>

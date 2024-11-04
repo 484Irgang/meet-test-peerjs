@@ -8,19 +8,23 @@ import {
 import { useRemoteStreamStore } from "@/store/remote-stream";
 import { useRoomStore } from "@/store/room";
 import { toPairs } from "ramda";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function RoomPage({ roomId }: { roomId: string }) {
   const room = useRoomStore((state) => state.room);
+  const alreadySendRoomRequest = useRef(false);
 
   const { requestToJoinRoom, socketActive } = useMeetSocket();
 
   const remoteStreams = useRemoteStreamStore((state) => state.remoteStreams);
 
   useEffect(() => {
-    if (socketActive) requestToJoinRoom(roomId);
+    if (socketActive && !alreadySendRoomRequest.current && !room?.id) {
+      requestToJoinRoom(roomId);
+      alreadySendRoomRequest.current = true;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socketActive]);
+  }, [socketActive, room?.id]);
 
   if (!room?.id)
     return (
