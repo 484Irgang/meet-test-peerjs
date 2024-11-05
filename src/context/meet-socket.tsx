@@ -70,14 +70,17 @@ export default function MeetSocketProvider({
     setSocket(newSocket);
 
     newSocket.on("joined-room-successfully", (room: Room) => {
+      console.log("Joined room successfully", room);
       setRoom(room);
     });
 
     newSocket.on("receive-call-session", (session: RemoteSession) => {
+      console.log("Received call session", session);
       appendRemoteSession(session);
     });
 
     newSocket.on("receive-all-room-sessions", (sessions: RemoteSession[]) => {
+      console.log("Received all room sessions", sessions);
       sessions.forEach((session) => {
         appendRemoteSession(session);
       });

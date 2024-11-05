@@ -24,7 +24,10 @@ export const useCallStore = create<CallStore>((set) => {
     remoteSessions: [],
     appendRemoteSession: (session) =>
       set((state) => ({
-        remoteSessions: union(state.remoteSessions, [session]),
+        remoteSessions:
+          session.id === state.sessionId
+            ? state.remoteSessions
+            : union(state.remoteSessions, [session]),
       })),
     removeRemoteSession: (sessionId) =>
       set((state) => ({
