@@ -6,6 +6,7 @@ import { TrackObject } from "@/services/cloudflare_calls/types";
 import { RemoteSession, useCallStore } from "@/store/call-store";
 import { useRemoteStreamStore } from "@/store/remote-stream";
 import { useRoomStore } from "@/store/room";
+import { useUserStore } from "@/store/user";
 import { toPairs } from "ramda";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useMeetSocket } from "./meet-socket";
@@ -30,6 +31,7 @@ export default function PeerClientProvider({
 
   const { sessionId, setSessionId, remoteSessions } = useCallStore();
   const room = useRoomStore((state) => state.room);
+  const user = useUserStore((state) => state.user);
 
   const { socketActive, shareSessionToRoom } = useMeetSocket();
 
@@ -261,6 +263,7 @@ export default function PeerClientProvider({
   useEffect(() => {
     if (
       sessionId &&
+      user?.id &&
       socketActive &&
       room?.id &&
       connected &&
@@ -272,10 +275,17 @@ export default function PeerClientProvider({
         mid,
         trackName: sender?.track?.id ?? "",
       }));
-      shareSessionToRoom(room.id, { id: sessionId, tracks });
+      shareSessionToRoom(room.id, { id: sessionId, tracks }, user.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, socketActive, room?.id, connected, myTransceivers?.length]);
+  }, [
+    sessionId,
+    socketActive,
+    room?.id,
+    connected,
+    myTransceivers?.length,
+    user?.id,
+  ]);
 
   return (
     <PeerClientContext.Provider value={{ peerClient }}>

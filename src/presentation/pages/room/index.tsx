@@ -7,24 +7,31 @@ import {
 } from "@/presentation/components/LocalMediaStream";
 import { useRemoteStreamStore } from "@/store/remote-stream";
 import { useRoomStore } from "@/store/room";
+import { useUserStore } from "@/store/user";
 import { toPairs } from "ramda";
 import { useEffect, useRef } from "react";
 
 export default function RoomPage({ roomId }: { roomId: string }) {
   const room = useRoomStore((state) => state.room);
   const alreadySendRoomRequest = useRef(false);
+  const user = useUserStore((state) => state.user);
 
   const { requestToJoinRoom, socketActive } = useMeetSocket();
 
   const remoteStreams = useRemoteStreamStore((state) => state.remoteStreams);
 
   useEffect(() => {
-    if (socketActive && !alreadySendRoomRequest.current && !room?.id) {
-      requestToJoinRoom(roomId);
+    if (
+      socketActive &&
+      !alreadySendRoomRequest.current &&
+      !room?.id &&
+      user?.id
+    ) {
+      requestToJoinRoom(roomId, user.id);
       alreadySendRoomRequest.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socketActive, room?.id]);
+  }, [socketActive, room?.id, user?.id]);
 
   if (!room?.id)
     return (

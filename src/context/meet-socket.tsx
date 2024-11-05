@@ -3,17 +3,17 @@
 import { TrackObject } from "@/services/cloudflare_calls/types";
 import { RemoteSession, useCallStore } from "@/store/call-store";
 import { useRoomStore } from "@/store/room";
-import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
 import { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 type MeetSocketContextProps = {
   createRoom: (newRoom: Room) => void;
-  requestToJoinRoom: (roomId: string) => void;
+  requestToJoinRoom: (roomId: string, userId: string) => void;
   shareSessionToRoom: (
     roomId: string,
-    sessionId: { id: string; tracks: TrackObject[] }
+    sessionId: { id: string; tracks: TrackObject[] },
+    userId: string
   ) => void;
   socketActive: boolean;
 };
@@ -26,7 +26,6 @@ export default function MeetSocketProvider({
   children: React.ReactNode;
 }) {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const userId = useUserStore((state) => state.userId);
   const setRoom = useRoomStore((state) => state.setRoom);
   const appendRemoteSession = useCallStore(
     (state) => state.appendRemoteSession
@@ -42,7 +41,7 @@ export default function MeetSocketProvider({
     }
   };
 
-  const requestToJoinRoom = (roomId: string) => {
+  const requestToJoinRoom = (roomId: string, userId: string) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
       socket.emit("request-join-room", { roomId, userId });
@@ -53,7 +52,8 @@ export default function MeetSocketProvider({
 
   const shareSessionToRoom = (
     roomId: string,
-    session: { id: string; tracks: TrackObject[] }
+    session: { id: string; tracks: TrackObject[] },
+    userId: string
   ) => {
     try {
       if (!socket?.active) throw new Error("Socket is not active");
