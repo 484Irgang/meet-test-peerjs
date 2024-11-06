@@ -13,11 +13,21 @@ export default function RoomPage({
   const roomId = params["room-id"];
 
   const streamAllowed = useLocalStreamStore((state) => state.stream);
+
   const setAllowed = useLocalStreamStore(
     (state) => state.setStreamAccessAllowed
   );
+  const setStream = useLocalStreamStore((state) => state.setStream);
 
-  const handleAllowStream = () => setAllowed(true);
+  const handleAllowStream = async () => {
+    const userStream = await navigator?.mediaDevices?.getUserMedia({
+      audio: true,
+      video: true,
+    });
+
+    setStream(userStream);
+    setAllowed(true);
+  };
 
   return (
     <Fragment>

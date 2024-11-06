@@ -1,9 +1,9 @@
 "use client";
 
-import { useUserMedia } from "@/hooks/user-media";
 import { CallsService } from "@/services/cloudflare_calls";
 import { TrackObject } from "@/services/cloudflare_calls/types";
 import { RemoteSession, useCallStore } from "@/store/call-store";
+import { useLocalStreamStore } from "@/store/local-stream";
 import { useRemoteStreamStore } from "@/store/remote-stream";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
@@ -36,8 +36,7 @@ export default function PeerClientProvider({
   const { socketActive, shareSessionToRoom } = useMeetSocket();
 
   const { setRemoteStream, remoteStreams } = useRemoteStreamStore();
-
-  const { localStream } = useUserMedia(sessionId);
+  const localStream = useLocalStreamStore((state) => state.stream);
 
   const onStartPeer = async () => {
     try {
