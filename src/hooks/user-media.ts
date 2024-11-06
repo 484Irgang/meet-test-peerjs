@@ -4,6 +4,7 @@ import { useEffect } from "react";
 export const useUserMedia = (sessionId: string | null) => {
   const setStream = useLocalStreamStore((state) => state.setStream);
   const localStream = useLocalStreamStore((state) => state.stream);
+  const allowed = useLocalStreamStore((state) => state.streamAccessAllowed);
 
   const getUserMedia = async () => {
     const userStream = await navigator?.mediaDevices?.getUserMedia({
@@ -16,9 +17,9 @@ export const useUserMedia = (sessionId: string | null) => {
   };
 
   useEffect(() => {
-    if (sessionId) getUserMedia();
+    if (sessionId && allowed) getUserMedia();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
+  }, [sessionId, allowed]);
 
   return { localStream };
 };

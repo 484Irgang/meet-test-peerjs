@@ -46,7 +46,7 @@ export default function Index() {
   };
 
   return (
-    <div
+    <section
       className="w-full h-full bg-dark-300 flex flex-1 items-center flex-col relative"
       suppressHydrationWarning
     >
@@ -58,33 +58,32 @@ export default function Index() {
       <div className="mt-[20vh] min-w-[20rem] p-4 rounded-lg bg-dark-200 flex items-center justify-center flex-col gap-y-4  border border-neutral-1000 z-10">
         <h1 className="font-bold text-brand-600">DWV MEET</h1>
         <h1 className="text-[1.75rem] font-bold">Bem vindo</h1>
-        {!!user?.id ? (
-          <div className="flex flex-1 w-full flex-col gap-y-4">
-            <div className="w-full min-w-60 flex flex-col gap-y-2">
-              <p className="font-bold text-sm text-neutral-400">
-                Insira o ID da sala:{" "}
-              </p>
-              <input
-                type="text"
-                onChange={(e) => setRoomId(e.target.value)}
-                className="w-full rounded-sm border border-neutral-900 bg-dark-100 h-8 outline-none pl-2"
-              />
-              <button
-                disabled={!roomId}
-                className="w-full h-[2.75rem] rounded-sm bg-brand-600 mt-4"
-                onClick={handleEnterRoom}
-              >
-                Entrar
-              </button>
-              <button
-                className="w-full h-[2.75rem] rounded-sm border border-neutral-400 mt-2"
-                onClick={handleCreateRoom}
-              >
-                Criar uma sala
-              </button>
-            </div>
+        {!!user?.id && (
+          <div className="w-full min-w-60 flex flex-col gap-y-4">
+            <p className="font-bold text-sm text-neutral-400">
+              Insira o ID da sala:{" "}
+            </p>
+            <input
+              type="text"
+              onChange={(e) => setRoomId(e.target.value)}
+              className="w-full rounded-sm border border-neutral-900 bg-dark-100 h-8 outline-none pl-2"
+            />
+            <button
+              disabled={!roomId}
+              className="w-full h-[2.75rem] rounded-sm bg-brand-600 mt-4"
+              onClick={handleEnterRoom}
+            >
+              Entrar
+            </button>
+            <button
+              className="w-full h-[2.75rem] rounded-sm border border-neutral-400 mt-2"
+              onClick={handleCreateRoom}
+            >
+              Criar uma sala
+            </button>
           </div>
-        ) : (
+        )}
+        {!user?.id && (
           <div className="flex flex-1 w-full flex-col gap-y-4">
             <p className="font-bold text-sm text-neutral-400">
               Insira seu nome:{" "}
@@ -103,6 +102,6 @@ export default function Index() {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
