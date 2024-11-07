@@ -1,15 +1,10 @@
 "use client";
 
 import { useMeetSocket } from "@/context/meet-socket";
-import {
-  LocalMediaStream,
-  RemoteMediaStream,
-} from "@/presentation/components/LocalMediaStream";
-import { useRemoteStreamStore } from "@/store/remote-stream";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
-import { toPairs } from "ramda";
 import { useEffect, useRef } from "react";
+import { RoomPreparation } from "./content/RoomPreparation";
 
 export default function RoomPage({ roomId }: { roomId: string }) {
   const room = useRoomStore((state) => state.room);
@@ -18,7 +13,7 @@ export default function RoomPage({ roomId }: { roomId: string }) {
 
   const { requestToJoinRoom, socketActive } = useMeetSocket();
 
-  const remoteStreams = useRemoteStreamStore((state) => state.remoteStreams);
+  // const remoteStreams = useRemoteStreamStore((state) => state.remoteStreams);
 
   useEffect(() => {
     if (
@@ -41,18 +36,5 @@ export default function RoomPage({ roomId }: { roomId: string }) {
       </div>
     );
 
-  return (
-    <div className="w-full h-full bg-dark-300 flex p-4 overflow-auto">
-      <div className="h-full w-full flex flex-col gap-4 flex-wrap">
-        <h1 className="text-xl font-bold w-full">{room.name}</h1>
-        <div className="flex flex-1 gap-4 flex-wrap content-start">
-          <LocalMediaStream />
-          {remoteStreams &&
-            toPairs(remoteStreams).map(([peerId, stream]) => (
-              <RemoteMediaStream key={peerId} stream={stream} />
-            ))}
-        </div>
-      </div>
-    </div>
-  );
+  return <RoomPreparation room={room} />;
 }

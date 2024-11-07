@@ -1,17 +1,16 @@
-import { useLocalStreamStore } from "@/store/local-stream";
 import { Fragment } from "react";
 
-export const LocalMediaStream = () => {
-  const localStream = useLocalStreamStore((state) => state.stream);
+export const MediaStream = ({ stream }: { stream: MediaStream | null }) => {
   return (
-    <div className="h-[12rem] w-[24rem] bg-dark-200 border border-brand-900 p-2 rounded-md flex flex-col gap-y-2 items-center justify-center">
-      {localStream?.active ? (
+    <div className="flex-1 max-w-full aspect-[4/3] bg-dark-200 border border-brand-900 p-2 rounded flex flex-col gap-y-2 items-center justify-center">
+      {stream?.active ? (
         <video
-          className="w-full h-full"
+          className="w-full h-full scale-105"
           ref={(node) => {
-            if (node) node.srcObject = localStream;
+            if (node) node.srcObject = stream;
           }}
           autoPlay
+          playsInline
         />
       ) : (
         <Fragment>
