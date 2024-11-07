@@ -2,7 +2,7 @@ import { Fragment } from "react";
 
 export const MediaStream = ({ stream }: { stream: MediaStream | null }) => {
   return (
-    <div className="flex-1 max-w-full aspect-[4/3] bg-dark-200 border border-brand-900 p-2 rounded flex flex-col gap-y-2 items-center justify-center">
+    <div className="flex-1 max-w-full aspect-[4/3] bg-dark-200 border border-neutral-1000 p-2 rounded flex flex-col gap-y-2 items-center justify-center">
       {stream?.active ? (
         <video
           className="w-full h-full scale-105"
