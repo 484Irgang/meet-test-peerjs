@@ -2,8 +2,11 @@ import { destroyCookie, parseCookies, setCookie } from "nookies";
 import { create } from "zustand";
 
 type LocalStreamStore = {
-  stream: MediaStream | null;
-  setStream: (stream: MediaStream) => void;
+  audioStreamTracks: MediaStreamTrack[];
+  videoStreamTracks: MediaStreamTrack[];
+  setStreamTracks: (
+    kind: "audio" | "video"
+  ) => (audioStreamTracks: MediaStreamTrack[]) => void;
   streamAccessAllowed: boolean;
   setStreamAccessAllowed: (allowed: boolean) => void;
   mutated: boolean;
@@ -16,8 +19,20 @@ export const useLocalStreamStore = create<LocalStreamStore>((set) => {
   const { ["@dwv-meet:stream_access_allowed"]: allowed } = parseCookies();
 
   return {
-    stream: null,
-    setStream: (stream) => set({ stream }),
+    audioStreamTracks: [],
+    videoStreamTracks: [],
+    setStreamTracks: (kind) => (streamTracks) =>
+      set((state) => {
+        if (kind === "audio") {
+          state.audioStreamTracks.forEach((track) => track.stop());
+          return { audioStreamTracks: streamTracks };
+        }
+        if (kind === "video") {
+          state.videoStreamTracks.forEach((track) => track.stop());
+          return { videoStreamTracks: streamTracks };
+        }
+        return state;
+      }),
     streamAccessAllowed: Boolean(allowed),
     setStreamAccessAllowed: (allowed) => {
       if (!allowed) destroyCookie(null, "@dwv-meet:stream_access_allowed");
@@ -28,8 +43,8 @@ export const useLocalStreamStore = create<LocalStreamStore>((set) => {
     toggleMutated: () =>
       set((state) => {
         const newMutated = !state.mutated;
-        if (!state.stream) return state;
-        state.stream.getAudioTracks().forEach((track) => {
+        if (!state.audioStreamTracks?.length) return state;
+        state.audioStreamTracks.forEach((track) => {
           track.enabled = !newMutated;
         });
         return { mutated: newMutated };
@@ -38,8 +53,8 @@ export const useLocalStreamStore = create<LocalStreamStore>((set) => {
     toggleCamera: () =>
       set((state) => {
         const newShowCamera = !state.showCamera;
-        if (!state.stream) return state;
-        state.stream.getVideoTracks().forEach((track) => {
+        if (!state.videoStreamTracks) return state;
+        state.videoStreamTracks.forEach((track) => {
           track.enabled = newShowCamera;
         });
         return { showCamera: newShowCamera };

@@ -1,8 +1,23 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 
-export const MediaStream = ({ stream }: { stream: MediaStream | null }) => {
+export const MediaStreamView = ({
+  tracks,
+}: {
+  tracks: MediaStreamTrack[] | null;
+}) => {
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  useEffect(() => {
+    if (!tracks) return;
+    const stream = new MediaStream(tracks);
+    setStream(stream);
+    return () => {
+      stream.getTracks().forEach((track) => track.stop());
+    };
+  }, [tracks]);
+
   return (
-    <div className="flex-1 max-w-full aspect-[4/3] bg-dark-200 border border-neutral-1000 p-2 rounded flex flex-col gap-y-2 items-center justify-center">
+    <div className="flex-1 flex items-center justify-center">
       {stream?.active ? (
         <video
           className="w-full h-full scale-105"

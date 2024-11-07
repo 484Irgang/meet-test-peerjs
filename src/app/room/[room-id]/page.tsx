@@ -3,7 +3,7 @@
 import PeerClientProvider from "@/context/peer-client";
 import RoomPageTemplate from "@/presentation/pages/room";
 import { useLocalStreamStore } from "@/store/local-stream";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 
 export default function RoomPage({
   params,
@@ -12,22 +12,31 @@ export default function RoomPage({
 }) {
   const roomId = params["room-id"];
 
-  const streamAllowed = useLocalStreamStore((state) => state.stream);
-
+  const streamAllowed = useLocalStreamStore(
+    (state) => state.streamAccessAllowed
+  );
   const setAllowed = useLocalStreamStore(
     (state) => state.setStreamAccessAllowed
   );
-  const setStream = useLocalStreamStore((state) => state.setStream);
+  const setStreamTracks = useLocalStreamStore((state) => state.setStreamTracks);
 
-  const handleAllowStream = async () => {
+  const handleGetLocalStreamTracks = async () => {
     const userStream = await navigator?.mediaDevices?.getUserMedia({
       audio: true,
       video: true,
     });
 
-    setStream(userStream);
-    setAllowed(true);
+    const audioTracks = userStream.getAudioTracks();
+    const videoTracks = userStream.getVideoTracks();
+
+    setStreamTracks("audio")(audioTracks);
+    setStreamTracks("video")(videoTracks);
   };
+
+  useEffect(() => {
+    if (streamAllowed) handleGetLocalStreamTracks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [streamAllowed]);
 
   return (
     <Fragment>
@@ -43,7 +52,7 @@ export default function RoomPage({
               câmera e microfone. Você será solicitado a acessar.
             </h1>
             <button
-              onClick={handleAllowStream}
+              onClick={() => setAllowed(true)}
               className="py-4 px-8 max-w-fit rounded-sm text-neutral-0 font-medium bg-brand-600"
             >
               Liberar acesso
