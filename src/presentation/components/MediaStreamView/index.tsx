@@ -17,7 +17,7 @@ export const MediaStreamView = ({
   }, [tracks]);
 
   return (
-    <div className="flex-1 flex items-center justify-center">
+    <div className="flex-1 flex items-center justify-center flex-col gap-y-2 rounded p-2">
       {stream?.active ? (
         <video
           className="w-full h-full scale-105"

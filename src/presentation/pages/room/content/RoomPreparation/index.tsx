@@ -31,11 +31,11 @@ export const RoomPreparation = ({ room }: { room: Room }) => {
   return (
     <div className="w-full h-full bg-dark-300 flex items-center justify-center">
       <div className="flex flex-col w-96">
-        <h2 className="text-3xl font-bold text-neutral-0">Nome da sala</h2>
+        <h2 className="text-3xl font-bold text-neutral-0">{room?.name}</h2>
         <h4 className="text-sm font-normal text-neutral-500 mb-2">
           0 usuários na sala
         </h4>
-        <div className="relative flex-1 max-w-full aspect-[4/3] bg-dark-200 border border-neutral-1000 p-2 rounded flex flex-col gap-y-2 items-center justify-center">
+        <div className="relative flex-1 max-w-full aspect-[4/3] bg-dark-200 border border-neutral-1000 rounded flex flex-col items-center justify-center">
           <div className="absolute z-10 top-2 left-2">
             {mutated ? (
               <FaMicrophoneSlash
