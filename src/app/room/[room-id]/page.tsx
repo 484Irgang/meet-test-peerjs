@@ -3,7 +3,7 @@
 import PeerClientProvider from "@/context/peer-client";
 import RoomPageTemplate from "@/presentation/pages/room";
 import { useLocalStreamStore } from "@/store/local-stream";
-import { Fragment, useEffect } from "react";
+import { Fragment } from "react";
 
 export default function RoomPage({
   params,
@@ -12,36 +12,18 @@ export default function RoomPage({
 }) {
   const roomId = params["room-id"];
 
-  const streamAllowed = useLocalStreamStore(
-    (state) => state.streamAccessAllowed
-  );
   const setAllowed = useLocalStreamStore(
     (state) => state.setStreamAccessAllowed
   );
-  const setStreamTracks = useLocalStreamStore((state) => state.setStreamTracks);
 
-  const handleGetLocalStreamTracks = async () => {
-    const userStream = await navigator?.mediaDevices?.getUserMedia({
-      audio: true,
-      video: true,
-    });
-
-    const audioTracks = userStream.getAudioTracks();
-    const videoTracks = userStream.getVideoTracks();
-
-    setStreamTracks("audio")(audioTracks);
-    setStreamTracks("video")(videoTracks);
-  };
-
-  useEffect(() => {
-    if (streamAllowed) handleGetLocalStreamTracks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [streamAllowed]);
+  const streamAllowed = useLocalStreamStore(
+    (state) => state.streamAccessAllowed
+  );
 
   return (
     <Fragment>
       {streamAllowed ? (
-        <PeerClientProvider>
+        <PeerClientProvider streamAllowed={streamAllowed}>
           <RoomPageTemplate roomId={roomId} />
         </PeerClientProvider>
       ) : (

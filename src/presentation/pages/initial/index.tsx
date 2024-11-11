@@ -24,6 +24,8 @@ export default function IndexPage() {
     const newUser = {
       id: v4(),
       name: userName,
+      joined: false,
+      speaking: false,
     };
 
     return setUser(newUser);

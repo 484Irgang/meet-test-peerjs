@@ -13,8 +13,6 @@ export default function RoomPage({ roomId }: { roomId: string }) {
 
   const { requestToJoinRoom, socketActive } = useMeetSocket();
 
-  // const remoteStreams = useRemoteStreamStore((state) => state.remoteStreams);
-
   useEffect(() => {
     if (
       socketActive &&
@@ -22,7 +20,7 @@ export default function RoomPage({ roomId }: { roomId: string }) {
       !room?.id &&
       user?.id
     ) {
-      requestToJoinRoom(roomId, user.id);
+      requestToJoinRoom(roomId, user);
       alreadySendRoomRequest.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
