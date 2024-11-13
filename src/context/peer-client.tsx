@@ -11,6 +11,7 @@ import { useMeetSocket } from "./meet-socket";
 
 type PeerClientProps = {
   peerClient: RTCPeerConnection | null;
+  connected: boolean;
 };
 
 const PeerClientContext = createContext<PeerClientProps>({} as PeerClientProps);
@@ -243,7 +244,7 @@ export default function PeerClientProvider({
   // ]);
 
   return (
-    <PeerClientContext.Provider value={{ peerClient }}>
+    <PeerClientContext.Provider value={{ peerClient, connected }}>
       {children}
     </PeerClientContext.Provider>
   );

@@ -12,4 +12,5 @@ export interface IUser {
     audioTracks?: TrackObject[];
     videoTracks?: TrackObject[];
   };
+  socketId?: string;
 }

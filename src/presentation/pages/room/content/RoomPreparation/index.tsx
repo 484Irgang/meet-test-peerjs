@@ -1,17 +1,21 @@
+import { usePeerClient } from "@/context/peer-client";
 import { AudioIndicator, MediaStreamView } from "@/presentation/components";
+import CallButton from "@/presentation/components/CallButton";
 import { useLocalStreamStore } from "@/store/local-stream";
 import { Room } from "@/types/room";
 import { useState } from "react";
-import {
-  FaCopy,
-  FaMicrophone,
-  FaMicrophoneSlash,
-  FaVideo,
-  FaVideoSlash,
-} from "react-icons/fa";
+import { FaMicrophoneSlash } from "react-icons/fa";
 
-export const RoomPreparation = ({ room }: { room: Room }) => {
+export const RoomPreparation = ({
+  room,
+  onEnterRoom,
+}: {
+  room: Room;
+  onEnterRoom: () => void;
+}) => {
   const [roomIdCopied, setRoomIdCopied] = useState(false);
+
+  const { connected } = usePeerClient();
 
   const {
     mutated,
@@ -52,41 +56,29 @@ export const RoomPreparation = ({ room }: { room: Room }) => {
           <MediaStreamView tracks={videoStreamTracks} />
         </div>
         <div className="flex w-full gap-x-4 mt-4">
-          <button className="py-2 px-4 text-sm uppercase rounded-sm bg-brand-500 text-neutral-0">
-            Entrar
-          </button>
           <button
+            disabled={!connected}
+            onClick={onEnterRoom}
+            className="py-2 px-4 text-sm uppercase rounded-sm bg-brand-500 text-neutral-0 disabled:opacity-40"
+          >
+            {connected ? "Entrar" : "Conectando..."}
+          </button>
+          <CallButton
             onClick={toggleMutated}
-            className={`py-2 px-4 transition-colors rounded-sm ${
-              mutated ? "bg-orange-600" : "bg-dark-100"
-            }`}
-          >
-            {mutated ? (
-              <FaMicrophoneSlash size={12} color="#ffffff" />
-            ) : (
-              <FaMicrophone size={12} color="#ffffff" />
-            )}
-          </button>
-          <button
+            className={mutated ? "bg-orange-600" : "bg-dark-100"}
+            icon={mutated ? "muted" : "microphone"}
+          />
+          <CallButton
             onClick={toggleCamera}
-            className={`py-2 px-4 transition-colors rounded-sm ${
-              showCamera ? "bg-dark-100" : "bg-orange-600"
-            }`}
-          >
-            {showCamera ? (
-              <FaVideo size={12} color="#ffffff" />
-            ) : (
-              <FaVideoSlash size={12} color="#ffffff" />
-            )}
-          </button>
-          <button
+            icon={showCamera ? "video" : "hidden-video"}
+            className={showCamera ? "bg-dark-100" : "bg-orange-600"}
+          />
+
+          <CallButton
+            icon="copy"
             onClick={handleCopyRoomId}
-            className={`py-2 px-4 transition-colors rounded-sm ${
-              roomIdCopied ? "bg-green-600" : "bg-dark-100"
-            }`}
-          >
-            <FaCopy size={12} color="#ffffff" />
-          </button>
+            className={roomIdCopied ? "bg-green-600" : "bg-dark-100"}
+          />
         </div>
       </div>
     </div>
