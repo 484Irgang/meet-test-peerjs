@@ -1,4 +1,4 @@
-import { usePeerClient } from "@/context/peer-client";
+import { usePeerClient } from "@/context/peer-client/index.";
 import { AudioIndicator, MediaStreamView } from "@/presentation/components";
 import CallButton from "@/presentation/components/CallButton";
 import { useLocalTracksStore } from "@/store/local-stream-tracks";

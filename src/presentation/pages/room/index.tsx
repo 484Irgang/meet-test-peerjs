@@ -1,7 +1,7 @@
 "use client";
 
 import { useMeetSocket } from "@/context/meet-socket";
-import PeerClientProvider from "@/context/peer-client";
+import PeerClientProvider from "@/context/peer-client/index.";
 import { useLocalTracksStore } from "@/store/local-stream-tracks";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
@@ -39,6 +39,10 @@ export default function RoomPage({
     updateUserMedia({ audioEnabled: !mutated, cameraEnabled: !!showCamera });
   };
 
+  const handleExitRoom = () => {
+    updateUser({ joined: false });
+  };
+
   useEffect(() => {
     if (
       socketActive &&
@@ -72,7 +76,7 @@ export default function RoomPage({
       {streamAllowed ? (
         <PeerClientProvider streamAllowed={streamAllowed}>
           {user?.joined ? (
-            <CallRoom roomId={room.id} />
+            <CallRoom roomId={room.id} endCall={handleExitRoom} />
           ) : (
             <RoomPreparation onEnterRoom={handleEnterRoom} room={room} />
           )}

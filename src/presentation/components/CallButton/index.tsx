@@ -32,7 +32,7 @@ const CallButton = ({ icon, iconSize = 12, ...rest }: CallButtonProps) => {
   return (
     <button
       {...rest}
-      className={`py-2 px-4 transition-colors rounded-sm bg-neutral-1000 ${
+      className={`py-2 px-4 transition-colors rounded-sm bg-neutral-1000  ${
         rest.className ? rest.className : ""
       }`}
     >

@@ -11,7 +11,12 @@ type CallButtons = {
   icon: CallButtonIconTypes;
 };
 
-export const CallRoom = ({ roomId }: { roomId: string }) => {
+type CallRoomProps = {
+  roomId: string;
+  endCall: () => void;
+};
+
+export const CallRoom = ({ roomId, endCall }: CallRoomProps) => {
   const [roomIdCopied, setRoomIdCopied] = useState(false);
 
   const {
@@ -39,7 +44,7 @@ export const CallRoom = ({ roomId }: { roomId: string }) => {
       video: toggleCamera,
       "hidden-video": toggleCamera,
       "share-screen": () => console.log("share screen"),
-      "end-call": () => console.log("end call"),
+      "end-call": () => endCall,
       copy: () =>
         pipe(
           () => window.navigator.clipboard.writeText(roomId),

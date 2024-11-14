@@ -44,8 +44,6 @@ export default function MeetSocketProvider({
       (user) => !userIds.includes(user.id)
     );
 
-    console.log({ usersToUpdate, usersToRemove });
-
     usersToUpdate.forEach((u) => updateRoomUser(u));
 
     usersToRemove.forEach((user) => {
