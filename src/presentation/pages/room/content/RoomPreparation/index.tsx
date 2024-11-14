@@ -1,7 +1,7 @@
 import { usePeerClient } from "@/context/peer-client";
 import { AudioIndicator, MediaStreamView } from "@/presentation/components";
 import CallButton from "@/presentation/components/CallButton";
-import { useLocalStreamStore } from "@/store/local-stream";
+import { useLocalTracksStore } from "@/store/local-stream-tracks";
 import { Room } from "@/types/room";
 import { useState } from "react";
 import { FaMicrophoneSlash } from "react-icons/fa";
@@ -24,7 +24,7 @@ export const RoomPreparation = ({
     audioStreamTracks,
     showCamera,
     toggleCamera,
-  } = useLocalStreamStore();
+  } = useLocalTracksStore();
 
   const handleCopyRoomId = () => {
     navigator.clipboard.writeText(room.id);
@@ -65,19 +65,19 @@ export const RoomPreparation = ({
           </button>
           <CallButton
             onClick={toggleMutated}
-            className={mutated ? "bg-orange-600" : "bg-dark-100"}
+            className={mutated ? "!bg-orange-600" : undefined}
             icon={mutated ? "muted" : "microphone"}
           />
           <CallButton
             onClick={toggleCamera}
             icon={showCamera ? "video" : "hidden-video"}
-            className={showCamera ? "bg-dark-100" : "bg-orange-600"}
+            className={!showCamera ? "!bg-orange-600" : undefined}
           />
 
           <CallButton
             icon="copy"
             onClick={handleCopyRoomId}
-            className={roomIdCopied ? "bg-green-600" : "bg-dark-100"}
+            className={roomIdCopied ? "!bg-green-600" : undefined}
           />
         </div>
       </div>

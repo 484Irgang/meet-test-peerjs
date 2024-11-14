@@ -1,6 +1,6 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, memo, useEffect, useState } from "react";
 
-export const MediaStreamView = ({
+const MediaStreamViewFunction = ({
   tracks,
 }: {
   tracks: MediaStreamTrack[] | null;
@@ -12,7 +12,8 @@ export const MediaStreamView = ({
     const stream = new MediaStream(tracks);
     setStream(stream);
     return () => {
-      stream.getTracks().forEach((track) => track.stop());
+      stream.getTracks().forEach((track) => stream.removeTrack(track));
+      setStream(null);
     };
   }, [tracks]);
 
@@ -39,23 +40,7 @@ export const MediaStreamView = ({
   );
 };
 
-export const RemoteMediaStream = ({
-  stream,
-}: {
-  stream: MediaStream | null;
-}) => {
-  if (!stream) return null;
-  return (
-    <div className="h-[12rem] w-[24rem] bg-dark-200 rounded-md p-2 border border-brand-900">
-      <video
-        className="w-full h-full"
-        ref={(node) => {
-          if (node && stream) {
-            node.srcObject = stream;
-          }
-        }}
-        autoPlay
-      />
-    </div>
-  );
-};
+export const MediaStreamView = memo(
+  MediaStreamViewFunction,
+  (prev, next) => prev.tracks?.length === next.tracks?.length
+);

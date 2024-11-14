@@ -1,5 +1,6 @@
 "use client";
 
+import { useRemoteStreamTracksStore } from "@/store/remote-stream-tracks";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
@@ -26,7 +27,30 @@ export default function MeetSocketProvider({
   const setRoom = useRoomStore((state) => state.setRoom);
 
   const user = useUserStore((state) => state.user);
-  const appendRoomUser = useRoomStore((state) => state.appendRoomUser);
+  const updateRoomUser = useRoomStore((state) => state.updateRoomUser);
+  const removeRoomUser = useRoomStore((state) => state.removeRoomUser);
+  const cleanRemoteTracks = useRemoteStreamTracksStore(
+    (state) => state.cleanRemoteTracks
+  );
+
+  const handleVerifyUsersInRoom = (users: IUser[]) => {
+    const user = useUserStore.getState().user;
+    const roomUsers = useRoomStore.getState().roomUsers;
+    const userIds = users.map((u) => u.id);
+
+    const usersToUpdate: IUser[] = users.filter((u) => u.id !== user?.id);
+
+    const usersToRemove = Object.keys(roomUsers ?? {}).filter(
+      (id) => !userIds.includes(id)
+    );
+
+    usersToUpdate.forEach((u) => updateRoomUser(u));
+
+    usersToRemove.forEach((id) => {
+      removeRoomUser(id);
+      cleanRemoteTracks(id);
+    });
+  };
 
   const createRoom = (newRoom: Room) => {
     try {
@@ -63,12 +87,16 @@ export default function MeetSocketProvider({
     setSocket(newSocket);
 
     newSocket.on("joined-room-successfully", (room: Room) => {
-      console.log("Joined room successfully", room);
       setRoom(room);
     });
 
     newSocket.on("user-updated", (updatedUser: IUser) => {
-      if (updatedUser.id !== user?.id) appendRoomUser(updatedUser);
+      handleVerifyUsersInRoom([updatedUser]);
+    });
+
+    newSocket.on("room-state", (room: Room) => {
+      const roomUsers = room.users || [];
+      handleVerifyUsersInRoom(roomUsers);
     });
 
     return () => {

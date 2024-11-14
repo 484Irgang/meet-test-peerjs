@@ -1,4 +1,5 @@
 import { IUser } from "@/types/user";
+import { produce } from "immer";
 import { parseCookies } from "nookies";
 import { create } from "zustand";
 
@@ -6,6 +7,7 @@ type UserStore = {
   user: IUser | null;
   setUser: (user: IUser) => void;
   updateUser: (user: Partial<IUser>) => void;
+  updateUserMedia: (media: Partial<IUser["media"]>) => void;
 };
 
 export const useUserStore = create<UserStore>((set) => {
@@ -18,12 +20,18 @@ export const useUserStore = create<UserStore>((set) => {
       return set({ user });
     },
     updateUser: (user: Partial<IUser>) => {
-      set((state) => ({
-        user: {
-          ...state.user,
-          ...user,
-        } as IUser,
-      }));
+      set(
+        produce((draft) => {
+          draft.user = { ...draft.user, ...user };
+        })
+      );
+    },
+    updateUserMedia: (media: Partial<IUser["media"]>) => {
+      set(
+        produce((draft) => {
+          draft.user.media = { ...draft.user.media, ...media };
+        })
+      );
     },
   };
 });

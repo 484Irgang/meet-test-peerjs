@@ -2,13 +2,11 @@
 
 import { useMeetSocket } from "@/context/meet-socket";
 import PeerClientProvider from "@/context/peer-client";
-import CallButton, {
-  CallButtonIconTypes,
-} from "@/presentation/components/CallButton";
-import { useLocalStreamStore } from "@/store/local-stream";
+import { useLocalTracksStore } from "@/store/local-stream-tracks";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
 import { Fragment, useEffect, useRef } from "react";
+import CallRoom from "./content/CallRoom";
 import { RoomPreparation } from "./content/RoomPreparation";
 
 export default function RoomPage({
@@ -23,18 +21,22 @@ export default function RoomPage({
   const room = useRoomStore((state) => state.room);
   const user = useUserStore((state) => state.user);
   const updateUser = useUserStore((state) => state.updateUser);
+  const updateUserMedia = useUserStore((state) => state.updateUserMedia);
 
-  const setAllowed = useLocalStreamStore(
+  const setAllowed = useLocalTracksStore(
     (state) => state.setStreamAccessAllowed
   );
-  const streamAllowed = useLocalStreamStore(
+  const streamAllowed = useLocalTracksStore(
     (state) => state.streamAccessAllowed
   );
+  const stopTracks = useLocalTracksStore((state) => state.stopTracks);
 
   const { requestToJoinRoom, socketActive } = useMeetSocket();
 
   const handleEnterRoom = () => {
+    const { mutated, showCamera } = useLocalTracksStore.getState();
     updateUser({ joined: true });
+    updateUserMedia({ audioEnabled: !mutated, cameraEnabled: !!showCamera });
   };
 
   useEffect(() => {
@@ -49,6 +51,13 @@ export default function RoomPage({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socketActive, room?.id, user?.id]);
+
+  useEffect(() => {
+    return () => {
+      stopTracks("all");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!room?.id || !user?.id)
     return (
@@ -87,34 +96,3 @@ export default function RoomPage({
     </Fragment>
   );
 }
-
-type CallButtons = {
-  icon: CallButtonIconTypes;
-};
-
-const callButtons: CallButtons[] = [
-  { icon: "microphone" },
-  { icon: "video" },
-  { icon: "share-screen" },
-  { icon: "end-call" },
-];
-
-export const CallRoom = () => {
-  return (
-    <div className="flex-1 flex w-full h-full bg-dark-300 flex-col">
-      <div className="flex-1 bg-brand-100" />
-      <div className="w-full flex p-5 items-center justify-center gap-4 bg-dark-100">
-        {callButtons.map((button, index) => (
-          <CallButton
-            key={index}
-            icon={button.icon}
-            iconSize={14}
-            className={`py-3 px-5 ${
-              button.icon === "end-call" && "!bg-orange-600"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};

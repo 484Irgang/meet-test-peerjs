@@ -1,7 +1,7 @@
 import { destroyCookie, parseCookies, setCookie } from "nookies";
 import { create } from "zustand";
 
-type LocalStreamStore = {
+type LocalTracksStore = {
   audioStreamTracks: MediaStreamTrack[];
   videoStreamTracks: MediaStreamTrack[];
   setStreamTracks: (
@@ -13,9 +13,10 @@ type LocalStreamStore = {
   toggleMutated: () => void;
   showCamera: boolean;
   toggleCamera: () => void;
+  stopTracks: (kind: "audio" | "video" | "all") => void;
 };
 
-export const useLocalStreamStore = create<LocalStreamStore>((set) => {
+export const useLocalTracksStore = create<LocalTracksStore>((set) => {
   const { ["@dwv-meet:stream_access_allowed"]: allowed } = parseCookies();
 
   return {
@@ -59,5 +60,24 @@ export const useLocalStreamStore = create<LocalStreamStore>((set) => {
         });
         return { showCamera: newShowCamera };
       }),
+    stopTracks: (kind) => {
+      if (kind === "audio") {
+        set((state) => {
+          state.audioStreamTracks.forEach((track) => track.stop());
+          return { audioStreamTracks: [] };
+        });
+      } else if (kind === "video") {
+        set((state) => {
+          state.videoStreamTracks.forEach((track) => track.stop());
+          return { videoStreamTracks: [] };
+        });
+      } else {
+        set((state) => {
+          state.audioStreamTracks.forEach((track) => track.stop());
+          state.videoStreamTracks.forEach((track) => track.stop());
+          return { audioStreamTracks: [], videoStreamTracks: [] };
+        });
+      }
+    },
   };
 });
