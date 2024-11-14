@@ -40,15 +40,17 @@ export default function MeetSocketProvider({
 
     const usersToUpdate: IUser[] = users.filter((u) => u.id !== user?.id);
 
-    const usersToRemove = Object.keys(roomUsers ?? {}).filter(
-      (id) => !userIds.includes(id)
+    const usersToRemove = Object.values(roomUsers ?? {}).filter(
+      (user) => !userIds.includes(user.id)
     );
+
+    console.log({ usersToUpdate, usersToRemove });
 
     usersToUpdate.forEach((u) => updateRoomUser(u));
 
-    usersToRemove.forEach((id) => {
-      removeRoomUser(id);
-      cleanRemoteTracks(id);
+    usersToRemove.forEach((user) => {
+      removeRoomUser(user.id);
+      cleanRemoteTracks(user.sessionId);
     });
   };
 
@@ -91,7 +93,13 @@ export default function MeetSocketProvider({
     });
 
     newSocket.on("user-updated", (updatedUser: IUser) => {
-      handleVerifyUsersInRoom([updatedUser]);
+      const user = useUserStore.getState().user;
+      if (updatedUser.id !== user?.id) updateRoomUser(updatedUser);
+    });
+
+    newSocket.on("user-disconnected", (user: IUser) => {
+      removeRoomUser(user.id);
+      cleanRemoteTracks(user.sessionId);
     });
 
     newSocket.on("room-state", (room: Room) => {

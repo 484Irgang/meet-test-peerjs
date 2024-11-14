@@ -72,7 +72,7 @@ export default function RoomPage({
       {streamAllowed ? (
         <PeerClientProvider streamAllowed={streamAllowed}>
           {user?.joined ? (
-            <CallRoom />
+            <CallRoom roomId={room.id} />
           ) : (
             <RoomPreparation onEnterRoom={handleEnterRoom} room={room} />
           )}

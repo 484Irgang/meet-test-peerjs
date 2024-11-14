@@ -10,7 +10,7 @@ import {
 import { RoomUsers, useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
 import { PromiseFeedback } from "@/types/responses";
-import { toPairs } from "ramda";
+import { isEmpty, toPairs } from "ramda";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type PeerClientProps = {
@@ -142,8 +142,13 @@ export default function PeerClientProvider({
   }, [streamAllowed]);
 
   useEffect(() => {
-    console.log("room users", { roomUsers, sessionId, connected, room });
-    if (roomUsers && sessionId && connected && room?.id) {
+    if (
+      roomUsers &&
+      !isEmpty(roomUsers) &&
+      sessionId &&
+      connected &&
+      room?.id
+    ) {
       normalizeRemoteUsersTracks(sessionId, roomUsers);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -3,14 +3,17 @@ import CallButton, {
 } from "@/presentation/components/CallButton";
 import { useLocalTracksStore } from "@/store/local-stream-tracks";
 import { useRemoteStreamTracksStore } from "@/store/remote-stream-tracks";
-import { toPairs } from "ramda";
-import { useEffect, useState } from "react";
+import { pipe, toPairs } from "ramda";
+import { useState } from "react";
+import { CallMediaStream } from "./CallMediaStream";
 
 type CallButtons = {
   icon: CallButtonIconTypes;
 };
 
-export const CallRoom = () => {
+export const CallRoom = ({ roomId }: { roomId: string }) => {
+  const [roomIdCopied, setRoomIdCopied] = useState(false);
+
   const {
     audioStreamTracks,
     videoStreamTracks,
@@ -24,7 +27,10 @@ export const CallRoom = () => {
     (state) => state.remoteTracks
   );
 
-  console.log("remote tracks available", remoteTracks);
+  const handleCopyTimeout = () => {
+    setRoomIdCopied(true);
+    setTimeout(() => setRoomIdCopied(false), 1500);
+  };
 
   const handleInteractButton = (icon: CallButtonIconTypes) => () => {
     const actions = {
@@ -34,7 +40,11 @@ export const CallRoom = () => {
       "hidden-video": toggleCamera,
       "share-screen": () => console.log("share screen"),
       "end-call": () => console.log("end call"),
-      copy: () => console.log("copy"),
+      copy: () =>
+        pipe(
+          () => window.navigator.clipboard.writeText(roomId),
+          handleCopyTimeout
+        )(),
     };
 
     actions[icon]();
@@ -43,7 +53,8 @@ export const CallRoom = () => {
   const callButtons: CallButtons[] = [
     { icon: mutated ? "muted" : "microphone" },
     { icon: showCamera ? "video" : "hidden-video" },
-    { icon: "share-screen" },
+    // { icon: "share-screen" },
+    { icon: "copy" },
     { icon: "end-call" },
   ];
 
@@ -65,47 +76,15 @@ export const CallRoom = () => {
             iconSize={14}
             onClick={handleInteractButton(button.icon)}
             className={`py-3 px-5 ${
-              ["end-call", "hidden-video", "muted"].includes(button.icon) &&
-              "!bg-orange-600"
+              ["end-call", "hidden-video", "muted"].includes(button.icon)
+                ? "!bg-orange-600"
+                : button.icon === "copy" && roomIdCopied
+                ? "!bg-green-600"
+                : ""
             }`}
           />
         ))}
       </div>
-    </div>
-  );
-};
-
-type CallMediaStreamProps = {
-  tracks: MediaStreamTrack[];
-};
-
-const CallMediaStream = ({ tracks }: CallMediaStreamProps) => {
-  const [stream, setStream] = useState<MediaStream | null>(null);
-
-  useEffect(() => {
-    if (!tracks) return;
-    const stream = new MediaStream(tracks);
-    setStream(stream);
-    return () => {
-      stream.getTracks().forEach((track) => stream.removeTrack(track));
-      setStream(null);
-    };
-  }, [tracks]);
-
-  return (
-    <div className="flex flex-1 min-w-[20% - 0.25rem] aspect-[16/6] bg-neutral-800 rounded-lg items-center justify-center">
-      {stream?.active ? (
-        <video
-          className="h-full max-w-full max-h-full rounded-sm"
-          ref={(node) => {
-            if (node) node.srcObject = stream;
-          }}
-          autoPlay
-          playsInline
-        />
-      ) : (
-        <div className="w-6 h-6 rounded-all border-2 border-b-0 border-t-0 border-brand-500 animate-spin" />
-      )}
     </div>
   );
 };
