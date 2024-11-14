@@ -110,32 +110,46 @@ const sendTracksToSession = async (
 
 // -------------------------------------------------
 
+type RemoteTracksNormalized = {
+  joinedTracks: TrackObject[];
+  unjoinedSessions: string[];
+};
+
 const generateTracksToPull = (
   remoteUsers: RoomUsers,
   remoteTracks: RemoteRoomTracks
 ) =>
-  Object.values(remoteUsers).reduce<TrackObject[]>((acc, user) => {
-    const remoteTracksStored =
-      user?.sessionId && !!remoteTracks?.[user.sessionId]?.length;
+  Object.values(remoteUsers).reduce<RemoteTracksNormalized>(
+    (acc, user) => {
+      const remoteTracksStored = user?.sessionId
+        ? remoteTracks?.[user.sessionId]
+        : [];
 
-    const pullUserTracks =
-      !remoteTracksStored &&
-      user?.sessionId &&
-      !!user?.joined &&
-      !!user?.media?.sessionTracks?.length;
+      if (
+        !remoteTracksStored?.length &&
+        !!user?.joined &&
+        !!user?.media?.sessionTracks?.length
+      ) {
+        const tracks: TrackObject[] =
+          user?.media?.sessionTracks.map(({ trackName }) => ({
+            location: "remote",
+            trackName: trackName,
+            sessionId: user.sessionId,
+          })) ?? [];
 
-    if (!pullUserTracks) return acc;
+        acc.joinedTracks.push(...tracks);
+        return acc;
+      }
 
-    const tracks: TrackObject[] =
-      user?.media?.sessionTracks.map(({ trackName }) => ({
-        location: "remote",
-        trackName: trackName,
-        sessionId: user.sessionId,
-      })) ?? [];
+      if (remoteTracksStored?.length && !user?.joined && user?.sessionId) {
+        acc.unjoinedSessions.push(user.sessionId);
+        return acc;
+      }
 
-    acc.push(...tracks);
-    return acc;
-  }, []);
+      return acc;
+    },
+    { joinedTracks: [], unjoinedSessions: [] }
+  );
 
 // -------------------------------------------------
 

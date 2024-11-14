@@ -36,6 +36,9 @@ export default function PeerClientProvider({
   const setRemoteTracks = useRemoteStreamTracksStore(
     (state) => state.setRemoteTracks
   );
+  const cleanRemoteTracks = useRemoteStreamTracksStore(
+    (state) => state.cleanRemoteTracks
+  );
 
   const handleStartConnection = async () => {
     try {
@@ -90,16 +93,15 @@ export default function PeerClientProvider({
 
       const remoteTracks = useRemoteStreamTracksStore.getState().remoteTracks;
 
-      const tracksToPull = PeerService.generateTracksToPull(
-        remoteUsers,
-        remoteTracks
-      );
+      const { joinedTracks, unjoinedSessions } =
+        PeerService.generateTracksToPull(remoteUsers, remoteTracks);
 
-      if (!tracksToPull?.length) return;
+      if (!joinedTracks?.length)
+        return handleRemoveRemoteTracks(unjoinedSessions);
 
       const pulledTracks = await PeerService.pullRemoteUsersTracks({
         mySessionId,
-        tracksToPull,
+        tracksToPull: joinedTracks,
         peerClient,
       });
 
@@ -114,9 +116,16 @@ export default function PeerClientProvider({
       toPairs(normalizedSessionTracks).forEach(([sessionId, tracks]) => {
         setRemoteTracks(sessionId, tracks);
       });
+
+      return handleRemoveRemoteTracks(unjoinedSessions);
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleRemoveRemoteTracks = (sessionIds: string[]) => {
+    if (!sessionIds?.length) return;
+    sessionIds.forEach((sessionId) => cleanRemoteTracks(sessionId));
   };
 
   const getLocalStreamTracks = async () => {

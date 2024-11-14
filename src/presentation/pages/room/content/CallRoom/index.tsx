@@ -44,7 +44,7 @@ export const CallRoom = ({ roomId, endCall }: CallRoomProps) => {
       video: toggleCamera,
       "hidden-video": toggleCamera,
       "share-screen": () => console.log("share screen"),
-      "end-call": () => endCall,
+      "end-call": endCall,
       copy: () =>
         pipe(
           () => window.navigator.clipboard.writeText(roomId),
