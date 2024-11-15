@@ -94,7 +94,7 @@ export default function PeerClientProvider({
       const remoteTracks = useRemoteStreamTracksStore.getState().remoteTracks;
 
       const { joinedTracks, unjoinedSessions } =
-        PeerService.generateTracksToPull(remoteUsers, remoteTracks);
+        PeerService.normalizeRemoteTracks(remoteUsers, remoteTracks);
 
       if (!joinedTracks?.length)
         return handleRemoveRemoteTracks(unjoinedSessions);

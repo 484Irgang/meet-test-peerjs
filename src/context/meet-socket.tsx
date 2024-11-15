@@ -12,6 +12,7 @@ type MeetSocketContextProps = {
   createRoom: (newRoom: Room) => void;
   requestToJoinRoom: (roomId: string, user: IUser) => void;
   socketActive: boolean;
+  handleRemoveUserFromRoom: (user: IUser) => void;
 };
 
 const MeetSocketContext = createContext({} as MeetSocketContextProps);
@@ -46,10 +47,12 @@ export default function MeetSocketProvider({
 
     usersToUpdate.forEach((u) => updateRoomUser(u));
 
-    usersToRemove.forEach((user) => {
-      removeRoomUser(user.id);
-      cleanRemoteTracks(user.sessionId);
-    });
+    usersToRemove.forEach(handleRemoveUserFromRoom);
+  };
+
+  const handleRemoveUserFromRoom = (user: IUser) => {
+    removeRoomUser(user.id);
+    cleanRemoteTracks(user.sessionId);
   };
 
   const createRoom = (newRoom: Room) => {
@@ -134,6 +137,7 @@ export default function MeetSocketProvider({
         socketActive: !!socket?.active,
         createRoom,
         requestToJoinRoom,
+        handleRemoveUserFromRoom,
       }}
     >
       {children}

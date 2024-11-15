@@ -49,7 +49,7 @@ const sendTracksToSession = async (
 
   try {
     const newTransceivers = localTracks.map((track) =>
-      peer.addTransceiver(track)
+      peer.addTransceiver(track, { direction: "sendonly" })
     );
     await peer.createOffer().then((offer) => peer.setLocalDescription(offer));
 
@@ -115,7 +115,7 @@ type RemoteTracksNormalized = {
   unjoinedSessions: string[];
 };
 
-const generateTracksToPull = (
+const normalizeRemoteTracks = (
   remoteUsers: RoomUsers,
   remoteTracks: RemoteRoomTracks
 ) =>
@@ -219,7 +219,7 @@ const pullRemoteUsersTracks = async ({
 const PeerService = {
   generateSessionPeer,
   sendTracksToSession,
-  generateTracksToPull,
+  normalizeRemoteTracks,
   pullRemoteUsersTracks,
 };
 

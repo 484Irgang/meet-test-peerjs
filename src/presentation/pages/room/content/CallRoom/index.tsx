@@ -63,6 +63,8 @@ export const CallRoom = ({ roomId, endCall }: CallRoomProps) => {
     { icon: "end-call" },
   ];
 
+  console.log("Remote Tracks", remoteTracks);
+
   return (
     <div className="flex-1 flex w-full h-full bg-dark-300 flex-col">
       <div className="flex flex-1 p-4 gap-4 flex-wrap overflow-y-auto">

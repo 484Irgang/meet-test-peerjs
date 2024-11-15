@@ -9,6 +9,7 @@ const CallMediaStreamFN = ({ tracks }: CallMediaStreamProps) => {
 
   useEffect(() => {
     if (!tracks) return;
+    console.log(tracks);
     const stream = new MediaStream(tracks);
     setStream(stream);
     return () => {
@@ -37,5 +38,5 @@ const CallMediaStreamFN = ({ tracks }: CallMediaStreamProps) => {
 
 export const CallMediaStream = memo(
   CallMediaStreamFN,
-  (prev, next) => prev.tracks?.length === next.tracks?.length
+  (prev, next) => prev.tracks === next.tracks
 );

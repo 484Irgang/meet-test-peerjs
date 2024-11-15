@@ -31,7 +31,8 @@ export default function RoomPage({
   );
   const stopTracks = useLocalTracksStore((state) => state.stopTracks);
 
-  const { requestToJoinRoom, socketActive } = useMeetSocket();
+  const { requestToJoinRoom, socketActive, handleRemoveUserFromRoom } =
+    useMeetSocket();
 
   const handleEnterRoom = () => {
     const { mutated, showCamera } = useLocalTracksStore.getState();
@@ -59,6 +60,8 @@ export default function RoomPage({
   useEffect(() => {
     return () => {
       stopTracks("all");
+      const user = useUserStore.getState().user;
+      if (user?.id) handleRemoveUserFromRoom(user);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
