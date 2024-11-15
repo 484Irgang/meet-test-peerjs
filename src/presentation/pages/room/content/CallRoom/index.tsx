@@ -4,7 +4,7 @@ import CallButton, {
 import { useLocalTracksStore } from "@/store/local-stream-tracks";
 import { useRemoteStreamTracksStore } from "@/store/remote-stream-tracks";
 import { pipe, toPairs } from "ramda";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CallMediaStream } from "./CallMediaStream";
 
 type CallButtons = {
@@ -64,6 +64,12 @@ export const CallRoom = ({ roomId, endCall }: CallRoomProps) => {
   ];
 
   console.log("Remote Tracks", remoteTracks);
+
+  useEffect(() => {
+    navigator.mediaDevices.addEventListener("devicechange", (event) => {
+      console.log("Device Change", event);
+    });
+  }, []);
 
   return (
     <div className="flex-1 flex w-full h-full bg-dark-300 flex-col">

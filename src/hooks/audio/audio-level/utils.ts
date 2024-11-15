@@ -51,6 +51,5 @@ export default function monitorAudioLevel({
     clearInterval(interval);
     clearTimeout(timeout);
     stream.removeTrack(mediaStreamTrack);
-    mediaStreamTrack.stop();
   };
 }
