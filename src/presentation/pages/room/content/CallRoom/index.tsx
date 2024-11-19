@@ -3,6 +3,7 @@ import CallButton, {
 } from "@/presentation/components/CallButton";
 import { useLocalTracksStore } from "@/store/local-stream-tracks";
 import { useRemoteStreamTracksStore } from "@/store/remote-stream-tracks";
+import { useRoomStore } from "@/store/room";
 import { pipe, toPairs } from "ramda";
 import { useEffect, useState } from "react";
 import { CallMediaStream } from "./CallMediaStream";
@@ -31,6 +32,7 @@ export const CallRoom = ({ roomId, endCall }: CallRoomProps) => {
   const remoteTracks = useRemoteStreamTracksStore(
     (state) => state.remoteTracks
   );
+  const roomUsers = useRoomStore((state) => state.roomUsers);
 
   const handleCopyTimeout = () => {
     setRoomIdCopied(true);
@@ -76,10 +78,19 @@ export const CallRoom = ({ roomId, endCall }: CallRoomProps) => {
       <div className="flex flex-1 p-4 gap-4 flex-wrap overflow-y-auto">
         <CallMediaStream
           tracks={[...audioStreamTracks, ...videoStreamTracks]}
+          username="Você"
         />
-        {toPairs(remoteTracks).map(([userId, tracks]) => (
-          <CallMediaStream key={userId} tracks={tracks} />
-        ))}
+        {toPairs(roomUsers ?? {}).map(([userId, user]) => {
+          const userTracks = remoteTracks[userId];
+          if (!remoteTracks) return null;
+          return (
+            <CallMediaStream
+              key={userId}
+              tracks={userTracks}
+              username={user.name}
+            />
+          );
+        })}
       </div>
       <div className="w-full flex p-5 items-center justify-center gap-4 bg-dark-100">
         {callButtons.map((button, index) => (
