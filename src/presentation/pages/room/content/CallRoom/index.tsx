@@ -81,8 +81,8 @@ export const CallRoom = ({ roomId, endCall }: CallRoomProps) => {
           username="Você"
         />
         {toPairs(roomUsers ?? {}).map(([userId, user]) => {
-          const userTracks = remoteTracks[userId];
-          if (!remoteTracks) return null;
+          const userTracks = user?.sessionId && remoteTracks[user.sessionId];
+          if (!userTracks) return null;
           return (
             <CallMediaStream
               key={userId}
