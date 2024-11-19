@@ -19,7 +19,7 @@ const CallMediaStreamFN = ({ tracks }: CallMediaStreamProps) => {
   }, [tracks]);
 
   return (
-    <div className="flex flex-1 min-w-[20% - 0.25rem] aspect-[16/6] bg-neutral-800 rounded-lg items-center justify-center">
+    <div className="flex flex-1 min-w-[calc(20%-0.25rem)] content-start aspect-[16/6] min-h-[160px] bg-neutral-800 rounded-lg items-center justify-center">
       {stream?.active ? (
         <video
           className="h-full max-w-full max-h-full rounded-sm"
