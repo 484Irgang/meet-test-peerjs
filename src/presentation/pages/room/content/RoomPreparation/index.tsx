@@ -2,6 +2,7 @@ import { usePeerClient } from "@/context/peer-client/index.";
 import { AudioIndicator, MediaStreamView } from "@/presentation/components";
 import CallButton from "@/presentation/components/CallButton";
 import { useLocalTracksStore } from "@/store/local-stream-tracks";
+import { useRoomStore } from "@/store/room";
 import { Room } from "@/types/room";
 import { useState } from "react";
 import { FaMicrophoneSlash } from "react-icons/fa";
@@ -16,6 +17,12 @@ export const RoomPreparation = ({
   const [roomIdCopied, setRoomIdCopied] = useState(false);
 
   const { connected } = usePeerClient();
+
+  const roomUsers = useRoomStore((state) => state.roomUsers);
+
+  const usersInRoomCount = Object.values(roomUsers ?? {})?.filter(
+    (user) => user.joined
+  )?.length;
 
   const {
     mutated,
@@ -37,7 +44,8 @@ export const RoomPreparation = ({
       <div className="flex flex-col w-96">
         <h2 className="text-3xl font-bold text-neutral-0">{room?.name}</h2>
         <h4 className="text-sm font-normal text-neutral-500 mb-2">
-          0 usuários na sala
+          {usersInRoomCount ?? 0}{" "}
+          {usersInRoomCount === 1 ? "usuário" : "usuários"} na sala
         </h4>
         <div className="relative flex-1 max-w-full aspect-[4/3] bg-dark-200 border border-neutral-1000 rounded flex flex-col items-center justify-center">
           <div className="absolute z-10 top-2 left-2">
