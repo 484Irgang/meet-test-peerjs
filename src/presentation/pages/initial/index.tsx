@@ -5,7 +5,7 @@ import { v4 } from "uuid";
 import { useMeetSocket } from "@/context/meet-socket";
 import { useUserStore } from "@/store/user";
 import { Room } from "@/types/room";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function IndexPage() {
@@ -14,6 +14,7 @@ export default function IndexPage() {
 
   const { createRoom } = useMeetSocket();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, setUser } = useUserStore();
 
   const handleEnterRoom = () => router.push(`/room/${roomId}`);
@@ -28,7 +29,9 @@ export default function IndexPage() {
       speaking: false,
     };
 
-    return setUser(newUser);
+    setUser(newUser);
+    const redirectPath = searchParams.get("redirect");
+    if (redirectPath) return router.push(redirectPath);
   };
 
   const handleCreateRoom = () => {

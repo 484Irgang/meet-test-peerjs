@@ -5,6 +5,7 @@ import PeerClientProvider from "@/context/peer-client/index.";
 import { useLocalTracksStore } from "@/store/local-stream-tracks";
 import { useRoomStore } from "@/store/room";
 import { useUserStore } from "@/store/user";
+import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef } from "react";
 import CallRoom from "./content/CallRoom";
 import { RoomPreparation } from "./content/RoomPreparation";
@@ -18,11 +19,12 @@ export default function RoomPage({
 
   const alreadySendRoomRequest = useRef(false);
 
+  const router = useRouter();
+
   const room = useRoomStore((state) => state.room);
   const user = useUserStore((state) => state.user);
   const updateUser = useUserStore((state) => state.updateUser);
   const updateUserMedia = useUserStore((state) => state.updateUserMedia);
-
   const setAllowed = useLocalTracksStore(
     (state) => state.setStreamAccessAllowed
   );
@@ -58,13 +60,15 @@ export default function RoomPage({
   }, [socketActive, room?.id, user?.id]);
 
   useEffect(() => {
+    const user = useUserStore.getState().user;
+    if (!user?.id) router.push(`/?redirect=/room/${roomId}`);
+
     return () => {
       stopTracks("all");
-      const user = useUserStore.getState().user;
       if (user?.id) handleRemoveUserFromRoom(user);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [roomId]);
 
   if (!room?.id || !user?.id)
     return (

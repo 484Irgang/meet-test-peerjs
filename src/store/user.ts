@@ -1,6 +1,6 @@
 import { IUser } from "@/types/user";
 import { produce } from "immer";
-import { parseCookies } from "nookies";
+import { parseCookies, setCookie } from "nookies";
 import { create } from "zustand";
 
 type UserStore = {
@@ -16,7 +16,7 @@ export const useUserStore = create<UserStore>((set) => {
   return {
     user: userParsed,
     setUser: (user: IUser) => {
-      // setCookie(null, "@dwv-meet:user", JSON.stringify(user));
+      setCookie(null, "@dwv-meet:user", JSON.stringify(user));
       return set({ user });
     },
     updateUser: (user: Partial<IUser>) => {
